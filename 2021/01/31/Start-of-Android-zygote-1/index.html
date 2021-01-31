@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="AOSP," />
 
 
 
@@ -79,14 +79,17 @@
 
 
 
-<meta name="description" content="Welcome to join the conference">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Woods的个人博客">
-<meta property="og:url" content="http://example.com/tags/JVM/index.html">
+<meta name="description" content="写在前面最近由于业务需要接触了较多的Android应用、ART虚拟机、framework相关的知识，打算梳理一个简单的AOSP系列出来介绍一些应用相关的知识，本文作为系列的第一篇，先从zygote讲起。AOSP R版本已经正式发布，本文也主要以R版本为基础进行介绍，主要涉及的git仓为framework&#x2F;base和system&#x2F;core，由于AOSP工程较大存在镜像同步困难等问题，可以通过在线的方">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【AOSP】zygote进程的启动（一）">
+<meta property="og:url" content="http://example.com/2021/01/31/Start-of-Android-zygote-1/index.html">
 <meta property="og:site_name" content="Woods的个人博客">
-<meta property="og:description" content="Welcome to join the conference">
+<meta property="og:description" content="写在前面最近由于业务需要接触了较多的Android应用、ART虚拟机、framework相关的知识，打算梳理一个简单的AOSP系列出来介绍一些应用相关的知识，本文作为系列的第一篇，先从zygote讲起。AOSP R版本已经正式发布，本文也主要以R版本为基础进行介绍，主要涉及的git仓为framework&#x2F;base和system&#x2F;core，由于AOSP工程较大存在镜像同步困难等问题，可以通过在线的方">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-01-31T10:51:22.000Z">
+<meta property="article:modified_time" content="2021-01-31T11:13:11.596Z">
 <meta property="article:author" content="Woods Arrow">
+<meta property="article:tag" content="AOSP">
 <meta name="twitter:card" content="summary">
 
 
@@ -117,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://example.com/tags/JVM/"/>
+  <link rel="canonical" href="http://example.com/2021/01/31/Start-of-Android-zygote-1/"/>
 
 
 
 
 
-  <title>Tag: JVM | Woods的个人博客</title>
+  <title>【AOSP】zygote进程的启动（一） | Woods的个人博客</title>
   
 
 
@@ -142,7 +145,7 @@
     
   
 
-  <div class="container sidebar-position-left ">
+  <div class="container sidebar-position-left page-post-detail">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -226,54 +229,151 @@
           <div id="content" class="content">
             
 
-  
-  
-  
-  <div class="post-block tag">
+  <div id="posts" class="posts-expand">
+    
 
-    <div id="posts" class="posts-collapse">
-      <div class="collection-title">
-        <h1>JVM<small>Tag</small>
-        </h1>
-      </div>
+  
 
-      
-        
+  
+  
+  
 
   <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/31/Start-of-Android-zygote-1/">
 
-      <h2 class="post-title">
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/woods.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Woods的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
         
-            <a class="post-title-link" href="/2021/01/31/How-to-start-Openjdk/" itemprop="url">
-              
-                <span itemprop="name">OpenJDK源码下载与编译</span>
-              
-            </a>
         
-      </h2>
+          <h1 class="post-title" itemprop="name headline">【AOSP】zygote进程的启动（一）</h1>
+        
 
-      <div class="post-meta">
-        <time class="post-time" itemprop="dateCreated"
-              datetime="2021-01-31T13:45:41+08:00"
-              content="2021-01-31" >
-          01-31
-        </time>
-      </div>
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-01-31T18:51:22+08:00">
+                2021-01-31
+              </time>
+            
 
-    </header>
-  </article>
+            
 
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>最近由于业务需要接触了较多的Android应用、ART虚拟机、framework相关的知识，打算梳理一个简单的AOSP系列出来介绍一些应用相关的知识，本文作为系列的第一篇，先从zygote讲起。AOSP R版本已经正式发布，本文也主要以R版本为基础进行介绍，主要涉及的git仓为framework/base和system/core，由于AOSP工程较大存在镜像同步困难等问题，可以通过在线的方式阅读源码：</p>
+<p><a target="_blank" rel="noopener" href="http://aospxref.com/android-11.0.0_r21/">http://aospxref.com/android-11.0.0_r21/</a> 最新已同步至R版本<br><a target="_blank" rel="noopener" href="https://github.com/aosp-mirror">https://github.com/aosp-mirror</a> 单仓的镜像<br><a target="_blank" rel="noopener" href="http://androidxref.com/">http://androidxref.com/</a> 版本较老，最新版本为P版本</p>
+<a id="more"></a>
+
+<h1 id="背景介绍和全文摘要"><a href="#背景介绍和全文摘要" class="headerlink" title="背景介绍和全文摘要"></a>背景介绍和全文摘要</h1><p>Android应用基本都是基于Java/Kotlin开发，运行在ART虚拟机上，而所有的应用都是从zygote进程fork出来的，包括Android的系统服务system_server，而且zygote本身的意思就是受精卵，可见zygote进程在Android系统中的重要性。zygote进程的的启动主要有以下几个流程：init进程拉起app_process、加载ART虚拟机库并查找虚拟机入口函数、传递参数启动虚拟机、进入java层的ZygoteInit。下面进行详细介绍。</p>
 
       
     </div>
+    
+    
+    
 
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/AOSP/" rel="tag"># AOSP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/01/31/How-to-start-Openjdk/" rel="next" title="OpenJDK源码下载与编译">
+                <i class="fa fa-chevron-left"></i> OpenJDK源码下载与编译
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
   </div>
   
   
   
+  </article>
 
-  
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
 
 
           </div>
@@ -281,6 +381,10 @@
 
 
           
+
+  
+
+
 
         </div>
         
@@ -301,8 +405,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
 
-      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
+      <section class="site-overview-wrap sidebar-panel">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -357,6 +470,22 @@
         </div>
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="nav-number">1.</span> <span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E4%BB%8B%E7%BB%8D%E5%92%8C%E5%85%A8%E6%96%87%E6%91%98%E8%A6%81"><span class="nav-number">2.</span> <span class="nav-text">背景介绍和全文摘要</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -497,6 +626,10 @@
 
 
   
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
 
   
 
