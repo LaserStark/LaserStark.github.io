@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="AOSP," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="背景回顾和本篇摘要上篇我们介绍了ZygoteInit中参数解析和初始化的一些工作，从zygote直接fork出SystemServer是一项重要的工作，其中一部分逻辑和应用的fork比较重合，本篇先单独对SystemServer的fork流程单独进行介绍。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【AOSP】zygote和应用的启动（三）-- SystemServer的启动">
+<meta property="og:url" content="http://example.com/2021/01/24/Start-of-Android-zygote-3/index.html">
+<meta property="og:site_name" content="Woods的个人博客">
+<meta property="og:description" content="背景回顾和本篇摘要上篇我们介绍了ZygoteInit中参数解析和初始化的一些工作，从zygote直接fork出SystemServer是一项重要的工作，其中一部分逻辑和应用的fork比较重合，本篇先单独对SystemServer的fork流程单独进行介绍。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-01-24T12:47:28.000Z">
+<meta property="article:modified_time" content="2021-02-06T14:09:34.441Z">
+<meta property="article:author" content="Woods Arrow">
+<meta property="article:tag" content="AOSP">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2021/01/24/Start-of-Android-zygote-3/"/>
+
+
+
+
+
+  <title>【AOSP】zygote和应用的启动（三）-- SystemServer的启动 | Woods的个人博客</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Woods的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/24/Start-of-Android-zygote-3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/woods.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Woods的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【AOSP】zygote和应用的启动（三）-- SystemServer的启动</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-01-24T20:47:28+08:00">
+                2021-01-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="背景回顾和本篇摘要"><a href="#背景回顾和本篇摘要" class="headerlink" title="背景回顾和本篇摘要"></a>背景回顾和本篇摘要</h1><p>上篇我们介绍了ZygoteInit中参数解析和初始化的一些工作，从zygote直接fork出SystemServer是一项重要的工作，其中一部分逻辑和应用的fork比较重合，本篇先单独对SystemServer的fork流程单独进行介绍。</p>
+<a id="more"></a>
+
+<h1 id="forkSystemServer"><a href="#forkSystemServer" class="headerlink" title="forkSystemServer"></a>forkSystemServer</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;frameworks&#x2F;base&#x2F;core&#x2F;java&#x2F;com&#x2F;android&#x2F;internal&#x2F;os&#x2F;Zygote.java</span><br><span class="line"></span><br><span class="line">438      &#x2F;**</span><br><span class="line">439       * Special method to start the system server process. In addition to the</span><br><span class="line">440       * common actions performed in forkAndSpecialize, the pid of the child</span><br><span class="line">441       * process is recorded such that the death of the child process will cause</span><br><span class="line">442       * zygote to exit.</span><br><span class="line">443       *</span><br><span class="line">444       * @param uid the UNIX uid that the new process should setuid() to after</span><br><span class="line">445       * fork()ing and and before spawning any threads.</span><br><span class="line">446       * @param gid the UNIX gid that the new process should setgid() to after</span><br><span class="line">447       * fork()ing and and before spawning any threads.</span><br><span class="line">448       * @param gids null-ok; a list of UNIX gids that the new process should</span><br><span class="line">449       * setgroups() to after fork and before spawning any threads.</span><br><span class="line">450       * @param runtimeFlags bit flags that enable ART features.</span><br><span class="line">451       * @param rlimits null-ok an array of rlimit tuples, with the second</span><br><span class="line">452       * dimension having a length of 3 and representing</span><br><span class="line">453       * (resource, rlim_cur, rlim_max). These are set via the posix</span><br><span class="line">454       * setrlimit(2) call.</span><br><span class="line">455       * @param permittedCapabilities argument for setcap()</span><br><span class="line">456       * @param effectiveCapabilities argument for setcap()</span><br><span class="line">457       *</span><br><span class="line">458       * @return 0 if this is the child, pid of the child</span><br><span class="line">459       * if this is the parent, or -1 on error.</span><br><span class="line">460       *&#x2F;</span><br><span class="line">461      static int forkSystemServer(int uid, int gid, int[] gids, int runtimeFlags,</span><br><span class="line">462              int[][] rlimits, long permittedCapabilities, long effectiveCapabilities) &#123;</span><br><span class="line">463          ZygoteHooks.preFork();</span><br><span class="line">464  </span><br><span class="line">465          int pid &#x3D; nativeForkSystemServer(</span><br><span class="line">466                  uid, gid, gids, runtimeFlags, rlimits,</span><br><span class="line">467                  permittedCapabilities, effectiveCapabilities);</span><br><span class="line">468  </span><br><span class="line">469          &#x2F;&#x2F; Set the Java Language thread priority to the default value for new apps.</span><br><span class="line">470          Thread.currentThread().setPriority(Thread.NORM_PRIORITY);</span><br><span class="line">471  </span><br><span class="line">472          ZygoteHooks.postForkCommon();</span><br><span class="line">473          return pid;</span><br><span class="line">474      &#125;</span><br></pre></td></tr></table></figure>
+<p>ZygoteInit中forkSystemServer的主要逻辑在Zygote.nativeForkSystemServer中，暂时先忽略usap相关的处理，其fork的主要动作为2093行的ForkCommon函数。在ForkCommon函数中1115行进行fork，如果pid为0，说明SystemServer的fork成功，当前进程已经是子进程SystemServer，进行priority和socket的一些处理；如果pid为大于0的值，说明当前进程为zygote进程，并且后续对SystemServer的进程进行监控，如果出现SystemServer crash等问题则重启zygote尝试重新拉起SystemServer。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;frameworks&#x2F;base&#x2F;core&#x2F;jni&#x2F;com_android_internal_os_Zygote.cpp</span><br><span class="line"></span><br><span class="line">2074  static jint com_android_internal_os_Zygote_nativeForkSystemServer(</span><br><span class="line">2075          JNIEnv* env, jclass, uid_t uid, gid_t gid, jintArray gids,</span><br><span class="line">2076          jint runtime_flags, jobjectArray rlimits, jlong permitted_capabilities,</span><br><span class="line">2077          jlong effective_capabilities) &#123;</span><br><span class="line">2092  </span><br><span class="line">2093    pid_t pid &#x3D; ForkCommon(env, true,</span><br><span class="line">2094                           fds_to_close,</span><br><span class="line">2095                           fds_to_ignore,</span><br><span class="line">2096                           true);</span><br><span class="line">2097    if (pid &#x3D;&#x3D; 0) &#123;</span><br><span class="line">2098        &#x2F;&#x2F; System server prcoess does not need data isolation so no need to</span><br><span class="line">2099        &#x2F;&#x2F; know pkg_data_info_list.</span><br><span class="line">2100        SpecializeCommon(env, uid, gid, gids, runtime_flags, rlimits,</span><br><span class="line">2101                         permitted_capabilities, effective_capabilities,</span><br><span class="line">2102                         MOUNT_EXTERNAL_DEFAULT, nullptr, nullptr, true,</span><br><span class="line">2103                         false, nullptr, nullptr, &#x2F;* is_top_app&#x3D; *&#x2F; false,</span><br><span class="line">2104                         &#x2F;* pkg_data_info_list *&#x2F; nullptr,</span><br><span class="line">2105                         &#x2F;* whitelisted_data_info_list *&#x2F; nullptr, false, false);</span><br><span class="line">2106    &#125; else if (pid &gt; 0) &#123;</span><br><span class="line">2107        &#x2F;&#x2F; The zygote process checks whether the child process has died or not.</span><br><span class="line">2108        ALOGI(&quot;System server process %d has been created&quot;, pid);</span><br><span class="line">2109        gSystemServerPid &#x3D; pid;</span><br><span class="line">2110        &#x2F;&#x2F; There is a slight window that the system server process has crashed</span><br><span class="line">2111        &#x2F;&#x2F; but it went unnoticed because we haven&#39;t published its pid yet. So</span><br><span class="line">2112        &#x2F;&#x2F; we recheck here just to make sure that all is well.</span><br><span class="line">2113        int status;</span><br><span class="line">2114        if (waitpid(pid, &amp;status, WNOHANG) &#x3D;&#x3D; pid) &#123;</span><br><span class="line">2115            ALOGE(&quot;System server process %d has died. Restarting Zygote!&quot;, pid);</span><br><span class="line">2116            RuntimeAbort(env, __LINE__, &quot;System server process has died. Restarting Zygote!&quot;);</span><br><span class="line">2117        &#125;</span><br><span class="line">2127    &#125;</span><br><span class="line">2128    return pid;</span><br><span class="line">2129  &#125;</span><br><span class="line"></span><br><span class="line">1074  &#x2F;&#x2F; Utility routine to fork a process from the zygote.</span><br><span class="line">1075  static pid_t ForkCommon(JNIEnv* env, bool is_system_server,</span><br><span class="line">1076                          const std::vector&lt;int&gt;&amp; fds_to_close,</span><br><span class="line">1077                          const std::vector&lt;int&gt;&amp; fds_to_ignore,</span><br><span class="line">1078                          bool is_priority_fork) &#123;</span><br><span class="line">1115    pid_t pid &#x3D; fork();</span><br><span class="line">1116  </span><br><span class="line">1117    if (pid &#x3D;&#x3D; 0) &#123;</span><br><span class="line">1118      if (is_priority_fork) &#123;</span><br><span class="line">1119        setpriority(PRIO_PROCESS, 0, PROCESS_PRIORITY_MAX);</span><br><span class="line">1120      &#125; else &#123;</span><br><span class="line">1121        setpriority(PRIO_PROCESS, 0, PROCESS_PRIORITY_MIN);</span><br><span class="line">1122      &#125;</span><br><span class="line">1140      &#x2F;&#x2F; Reset the fd to the unsolicited zygote socket</span><br><span class="line">1141      gSystemServerSocketFd &#x3D; -1;</span><br><span class="line">1142    &#125; else &#123;</span><br><span class="line">1143      ALOGD(&quot;Forked child process %d&quot;, pid);</span><br><span class="line">1144    &#125;</span><br><span class="line">1149    return pid;</span><br><span class="line">1150  &#125;</span><br></pre></td></tr></table></figure>
+<p>再回到fork成功后的SystemServer子进程，2100行SystemServer在fork成功后会继续执行SpecializeCommon函数进行一些配置并正式进入java层的逻辑。这里面的逻辑包括数据存储目录、信号处理、debugger设置、gid等一些相关的处理，1790行针对SystemServer进程单独调用了java层的callPostForkSystemServer方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;frameworks&#x2F;base&#x2F;core&#x2F;jni&#x2F;com_android_internal_os_Zygote.cpp</span><br><span class="line"></span><br><span class="line">1602  &#x2F;&#x2F; Utility routine to specialize a zygote child process.</span><br><span class="line">1603  static void SpecializeCommon(JNIEnv* env, uid_t uid, gid_t gid, jintArray gids,</span><br><span class="line">1604                               jint runtime_flags, jobjectArray rlimits,</span><br><span class="line">1605                               jlong permitted_capabilities, jlong effective_capabilities,</span><br><span class="line">1606                               jint mount_external, jstring managed_se_info,</span><br><span class="line">1607                               jstring managed_nice_name, bool is_system_server,</span><br><span class="line">1608                               bool is_child_zygote, jstring managed_instruction_set,</span><br><span class="line">1609                               jstring managed_app_data_dir, bool is_top_app,</span><br><span class="line">1610                               jobjectArray pkg_data_info_list,</span><br><span class="line">1611                               jobjectArray whitelisted_data_info_list,</span><br><span class="line">1612                               bool mount_data_dirs, bool mount_storage_dirs) &#123;</span><br><span class="line">1613    const char* process_name &#x3D; is_system_server ? &quot;system_server&quot; : &quot;zygote&quot;;</span><br><span class="line">1618    auto nice_name &#x3D; extract_fn(managed_nice_name);</span><br><span class="line">1619    auto instruction_set &#x3D; extract_fn(managed_instruction_set);</span><br><span class="line">1620    auto app_data_dir &#x3D; extract_fn(managed_app_data_dir);</span><br><span class="line">1779    &#x2F;&#x2F; Make it easier to debug audit logs by setting the main thread&#39;s name to the</span><br><span class="line">1780    &#x2F;&#x2F; nice name rather than &quot;app_process&quot;.</span><br><span class="line">1781    if (nice_name.has_value()) &#123;</span><br><span class="line">1782      SetThreadName(nice_name.value());</span><br><span class="line">1783    &#125; else if (is_system_server) &#123;</span><br><span class="line">1784      SetThreadName(&quot;system_server&quot;);</span><br><span class="line">1785    &#125;</span><br><span class="line">1789  </span><br><span class="line">1790    if (is_system_server) &#123;</span><br><span class="line">1791      env-&gt;CallStaticVoidMethod(gZygoteClass, gCallPostForkSystemServerHooks, runtime_flags);</span><br><span class="line">1792      if (env-&gt;ExceptionCheck()) &#123;</span><br><span class="line">1793        fail_fn(&quot;Error calling post fork system server hooks.&quot;);</span><br><span class="line">1794      &#125;</span><br><span class="line">1801    &#125;</span><br><span class="line">1802  </span><br><span class="line">1803    if (is_child_zygote) &#123;</span><br><span class="line">1804        initUnsolSocketToSystemServer();</span><br><span class="line">1805    &#125;</span><br><span class="line">1806  </span><br><span class="line">1807    env-&gt;CallStaticVoidMethod(gZygoteClass, gCallPostForkChildHooks, runtime_flags,</span><br><span class="line">1808                              is_system_server, is_child_zygote, managed_instruction_set);</span><br><span class="line">1809  </span><br><span class="line">1810    &#x2F;&#x2F; Reset the process priority to the default value.</span><br><span class="line">1811    setpriority(PRIO_PROCESS, 0, PROCESS_PRIORITY_DEFAULT);</span><br><span class="line">1816  &#125;</span><br></pre></td></tr></table></figure>
+<p>可以看出最终调用到libcore里面ZygoteHooks的postForkSystemServer方法，主要是虚拟机内部对当前SystemServer进程标志位的设置和jit profile的一些特殊处理。<br>类似地，1807行的gCallPostForkChildHooks调用虚拟机内部实现进行类似的的处理，此处不再赘述。<br>特别地，ForkCommon和SpecializeCommon中Common主要是指SystemServer和应用在fork的时候都共用的一些逻辑，我们在后面fork应用的时候还会遇到这两个函数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;frameworks&#x2F;base&#x2F;core&#x2F;java&#x2F;com&#x2F;android&#x2F;internal&#x2F;os&#x2F;Zygote.java</span><br><span class="line"></span><br><span class="line">1034      &#x2F;&#x2F; This function is called from native code in com_android_internal_os_Zygote.cpp</span><br><span class="line">1035      @SuppressWarnings(&quot;unused&quot;)</span><br><span class="line">1036      private static void callPostForkSystemServerHooks(int runtimeFlags) &#123;</span><br><span class="line">1037          &#x2F;&#x2F; SystemServer specific post fork hooks run before child post fork hooks.</span><br><span class="line">1038          ZygoteHooks.postForkSystemServer(runtimeFlags);</span><br><span class="line">1039      &#125;</span><br><span class="line"></span><br><span class="line">&#x2F;libcore&#x2F;dalvik&#x2F;src&#x2F;main&#x2F;java&#x2F;dalvik&#x2F;system&#x2F;ZygoteHooks.java</span><br><span class="line"></span><br><span class="line">122      &#x2F;**</span><br><span class="line">123       * Called by the zygote in the system server process after forking. This method is is called</span><br><span class="line">124       * before &#123;@code postForkChild&#125; for system server.</span><br><span class="line">125       *&#x2F;</span><br><span class="line">126      @libcore.api.CorePlatformApi</span><br><span class="line">127      public static void postForkSystemServer(int runtimeFlags) &#123;</span><br><span class="line">128          nativePostForkSystemServer(runtimeFlags);</span><br><span class="line">129      &#125;</span><br><span class="line"></span><br><span class="line">&#x2F;art&#x2F;runtime&#x2F;native&#x2F;dalvik_system_ZygoteHooks.cc</span><br><span class="line"></span><br><span class="line">266  static void ZygoteHooks_nativePostForkSystemServer(JNIEnv* env ATTRIBUTE_UNUSED,</span><br><span class="line">267                                                     jclass klass ATTRIBUTE_UNUSED,</span><br><span class="line">268                                                     jint runtime_flags) &#123;</span><br><span class="line">269    &#x2F;&#x2F; Set the runtime state as the first thing, in case JIT and other services</span><br><span class="line">270    &#x2F;&#x2F; start querying it.</span><br><span class="line">271    Runtime::Current()-&gt;SetAsSystemServer();</span><br><span class="line">272  </span><br><span class="line">273    &#x2F;&#x2F; This JIT code cache for system server is created whilst the runtime is still single threaded.</span><br><span class="line">274    &#x2F;&#x2F; System server has a window where it can create executable pages for this purpose, but this is</span><br><span class="line">275    &#x2F;&#x2F; turned off after this hook. Consequently, the only JIT mode supported is the dual-view JIT</span><br><span class="line">276    &#x2F;&#x2F; where one mapping is R-&gt;RW and the other is RX. Single view requires RX-&gt;RWX-&gt;RX.</span><br><span class="line">277    if (Runtime::Current()-&gt;GetJit() !&#x3D; nullptr) &#123;</span><br><span class="line">278      Runtime::Current()-&gt;GetJit()-&gt;GetCodeCache()-&gt;PostForkChildAction(</span><br><span class="line">279          &#x2F;* is_system_server&#x3D; *&#x2F; true, &#x2F;* is_zygote&#x3D; *&#x2F; false);</span><br><span class="line">280    &#125;</span><br><span class="line">281    &#x2F;&#x2F; Enable profiling if required based on the flags. This is done here instead of in</span><br><span class="line">282    &#x2F;&#x2F; nativePostForkChild since nativePostForkChild is called after loading the system server oat</span><br><span class="line">283    &#x2F;&#x2F; files.</span><br><span class="line">284    bool profile_system_server &#x3D; (runtime_flags &amp; PROFILE_SYSTEM_SERVER) &#x3D;&#x3D; PROFILE_SYSTEM_SERVER;</span><br><span class="line">285    Runtime::Current()-&gt;GetJITOptions()-&gt;SetSaveProfilingInfo(profile_system_server);</span><br><span class="line">286  &#125;</span><br></pre></td></tr></table></figure>
+<p>从Zygote.forkSystemServer结束我们再重新回调用点ZygoteInit，在SystemServer fork成功后，799行ZygoteInit会进入handleSystemServerProcess的处理逻辑。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;frameworks&#x2F;base&#x2F;core&#x2F;java&#x2F;com&#x2F;android&#x2F;internal&#x2F;os&#x2F;ZygoteInit.java</span><br><span class="line"></span><br><span class="line">711      &#x2F;**</span><br><span class="line">712       * Prepare the arguments and forks for the system server process.</span><br><span class="line">713       *</span><br><span class="line">714       * @return A &#123;@code Runnable&#125; that provides an entrypoint into system_server code in the child</span><br><span class="line">715       * process; &#123;@code null&#125; in the parent.</span><br><span class="line">716       *&#x2F;</span><br><span class="line">717      private static Runnable forkSystemServer(String abiList, String socketName,</span><br><span class="line">718              ZygoteServer zygoteServer) &#123;</span><br><span class="line">746          String args[] &#x3D; &#123;</span><br><span class="line">747                  &quot;--setuid&#x3D;1000&quot;,</span><br><span class="line">748                  &quot;--setgid&#x3D;1000&quot;,</span><br><span class="line">749                  &quot;--setgroups&#x3D;1001,1002,1003,1004,1005,1006,1007,1008,1009,1010,1018,1021,1023,&quot;</span><br><span class="line">750                          + &quot;1024,1032,1065,3001,3002,3003,3006,3007,3009,3010,3011&quot;,</span><br><span class="line">751                  &quot;--capabilities&#x3D;&quot; + capabilities + &quot;,&quot; + capabilities,</span><br><span class="line">752                  &quot;--nice-name&#x3D;system_server&quot;,</span><br><span class="line">753                  &quot;--runtime-args&quot;,</span><br><span class="line">754                  &quot;--target-sdk-version&#x3D;&quot; + VMRuntime.SDK_VERSION_CUR_DEVELOPMENT,</span><br><span class="line">755                  &quot;com.android.server.SystemServer&quot;,</span><br><span class="line">756          &#125;;</span><br><span class="line">757          ZygoteArguments parsedArgs &#x3D; null;</span><br><span class="line">759          int pid;</span><br><span class="line">761          try &#123;</span><br><span class="line">762              parsedArgs &#x3D; new ZygoteArguments(args); </span><br><span class="line">780              &#x2F;* Request to fork the system server process *&#x2F;</span><br><span class="line">781              pid &#x3D; Zygote.forkSystemServer(</span><br><span class="line">782                      parsedArgs.mUid, parsedArgs.mGid,</span><br><span class="line">783                      parsedArgs.mGids,</span><br><span class="line">784                      parsedArgs.mRuntimeFlags,</span><br><span class="line">785                      null,</span><br><span class="line">786                      parsedArgs.mPermittedCapabilities,</span><br><span class="line">787                      parsedArgs.mEffectiveCapabilities);</span><br><span class="line">788          &#125; catch (IllegalArgumentException ex) &#123;</span><br><span class="line">789              throw new RuntimeException(ex);</span><br><span class="line">790          &#125;</span><br><span class="line">791  </span><br><span class="line">792          &#x2F;* For child process *&#x2F;</span><br><span class="line">793          if (pid &#x3D;&#x3D; 0) &#123;</span><br><span class="line">794              if (hasSecondZygote(abiList)) &#123;</span><br><span class="line">795                  waitForSecondaryZygote(socketName);</span><br><span class="line">796              &#125;</span><br><span class="line">798              zygoteServer.closeServerSocket();</span><br><span class="line">799              return handleSystemServerProcess(parsedArgs);</span><br><span class="line">800          &#125;</span><br><span class="line">802          return null;</span><br><span class="line">803      &#125;</span><br></pre></td></tr></table></figure>
+<p>在handleSystemServerProcess中首先对SYSTEMSERVERCLASSPATH中的jar包进行dexopt优化，然后创建PathClassLoader加载SYSTEMSERVERCLASSPATH环境变量设置的jar包，最后进入RuntimeInit.applicationInit方法，设置sdk版本，从该ClassLoader中查找forkSystemServer中755行<code>com.android.server.SystemServer</code>类的main方法并返回到ZygoteInit的main方法，最终进入SystemServer的java逻辑。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;frameworks&#x2F;base&#x2F;core&#x2F;java&#x2F;com&#x2F;android&#x2F;internal&#x2F;os&#x2F;ZygoteInit.java</span><br><span class="line"></span><br><span class="line">501      private static Runnable handleSystemServerProcess(ZygoteArguments parsedArgs) &#123;</span><br><span class="line">509          final String systemServerClasspath &#x3D; Os.getenv(&quot;SYSTEMSERVERCLASSPATH&quot;);</span><br><span class="line">510          if (systemServerClasspath !&#x3D; null) &#123;</span><br><span class="line">511              performSystemServerDexOpt(systemServerClasspath);</span><br><span class="line">514              if (shouldProfileSystemServer() &amp;&amp; (Build.IS_USERDEBUG || Build.IS_ENG)) &#123;</span><br><span class="line">515                  try &#123;</span><br><span class="line">517                      prepareSystemServerProfile(systemServerClasspath);</span><br><span class="line">518                  &#125; catch (Exception e) &#123;</span><br><span class="line">520                  &#125;</span><br><span class="line">521              &#125;</span><br><span class="line">522          &#125;</span><br><span class="line">524          if (parsedArgs.mInvokeWith !&#x3D; null) &#123;</span><br><span class="line">525              String[] args &#x3D; parsedArgs.mRemainingArgs;</span><br><span class="line">529              if (systemServerClasspath !&#x3D; null) &#123;</span><br><span class="line">530                  String[] amendedArgs &#x3D; new String[args.length + 2];</span><br><span class="line">531                  amendedArgs[0] &#x3D; &quot;-cp&quot;;</span><br><span class="line">532                  amendedArgs[1] &#x3D; systemServerClasspath;</span><br><span class="line">533                  System.arraycopy(args, 0, amendedArgs, 2, args.length);</span><br><span class="line">534                  args &#x3D; amendedArgs;</span><br><span class="line">535              &#125;</span><br><span class="line">537              WrapperInit.execApplication(parsedArgs.mInvokeWith,</span><br><span class="line">538                      parsedArgs.mNiceName, parsedArgs.mTargetSdkVersion,</span><br><span class="line">539                      VMRuntime.getCurrentInstructionSet(), null, args);</span><br><span class="line">541              throw new IllegalStateException(&quot;Unexpected return from WrapperInit.execApplication&quot;);</span><br><span class="line">542          &#125; else &#123;</span><br><span class="line">543              ClassLoader cl &#x3D; null;</span><br><span class="line">544              if (systemServerClasspath !&#x3D; null) &#123;</span><br><span class="line">545                  cl &#x3D; createPathClassLoader(systemServerClasspath, parsedArgs.mTargetSdkVersion);</span><br><span class="line">547                  Thread.currentThread().setContextClassLoader(cl);</span><br><span class="line">548              &#125;</span><br><span class="line">550              &#x2F;*</span><br><span class="line">551               * Pass the remaining arguments to SystemServer.</span><br><span class="line">552               *&#x2F;</span><br><span class="line">553              return ZygoteInit.zygoteInit(parsedArgs.mTargetSdkVersion,</span><br><span class="line">554                      parsedArgs.mDisabledCompatChanges,</span><br><span class="line">555                      parsedArgs.mRemainingArgs, cl);</span><br><span class="line">556          &#125;</span><br><span class="line">559      &#125;</span><br><span class="line"></span><br><span class="line">991      public static final Runnable zygoteInit(int targetSdkVersion, long[] disabledCompatChanges,</span><br><span class="line">992              String[] argv, ClassLoader classLoader) &#123;</span><br><span class="line">1000          RuntimeInit.commonInit();</span><br><span class="line">1001          ZygoteInit.nativeZygoteInit();</span><br><span class="line">1002          return RuntimeInit.applicationInit(targetSdkVersion, disabledCompatChanges, argv,</span><br><span class="line">1003                  classLoader);</span><br><span class="line">1004      &#125;</span><br><span class="line"></span><br><span class="line">&#x2F;frameworks&#x2F;base&#x2F;core&#x2F;java&#x2F;com&#x2F;android&#x2F;internal&#x2F;os&#x2F;RuntimeInit.java</span><br><span class="line"></span><br><span class="line">404      protected static Runnable applicationInit(int targetSdkVersion, long[] disabledCompatChanges,</span><br><span class="line">405              String[] argv, ClassLoader classLoader) &#123;</span><br><span class="line">413          VMRuntime.getRuntime().setTargetSdkVersion(targetSdkVersion);</span><br><span class="line">414          VMRuntime.getRuntime().setDisabledCompatChanges(disabledCompatChanges);</span><br><span class="line">416          final Arguments args &#x3D; new Arguments(argv);</span><br><span class="line">421          &#x2F;&#x2F; Remaining arguments are passed to the start class&#39;s static main</span><br><span class="line">422          return findStaticMain(args.startClass, args.startArgs, classLoader);</span><br><span class="line">423      &#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/AOSP/" rel="tag"># AOSP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/01/17/Start-of-Android-zygote-2/" rel="next" title="【AOSP】zygote和应用的启动（二）--ZygoteInit的初始化">
+                <i class="fa fa-chevron-left"></i> 【AOSP】zygote和应用的启动（二）--ZygoteInit的初始化
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/woods.gif"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%83%8C%E6%99%AF%E5%9B%9E%E9%A1%BE%E5%92%8C%E6%9C%AC%E7%AF%87%E6%91%98%E8%A6%81"><span class="nav-number">1.</span> <span class="nav-text">背景回顾和本篇摘要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#forkSystemServer"><span class="nav-number">2.</span> <span class="nav-text">forkSystemServer</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Woods Arrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
