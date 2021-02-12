@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="JVM," />
+  <meta name="keywords" content="AOSP," />
 
 
 
@@ -79,22 +79,18 @@
 
 
 
-<meta name="description" content="OpenJDK是学习java虚拟机的一手资料，本文主要记录一下在OpenJDK源码的获取下载和编译中遇到的问题。">
+<meta name="description" content="前言前面几篇我们依次介绍了zygote进程的启动、ZygoteInit、system server和应用进程的启动，本篇主要介绍zygote侧对于fork流程的性能优化应用–usap pool。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="【OJ】OpenJDK源码下载与编译">
-<meta property="og:url" content="http://example.com/2021/01/02/How-to-start-Openjdk/index.html">
+<meta property="og:title" content="【AOSP】zygote和应用的启动（五）--从usap pool fork应用">
+<meta property="og:url" content="http://example.com/2021/02/12/Start-of-Android-zygote-5/index.html">
 <meta property="og:site_name" content="Woods的个人博客">
-<meta property="og:description" content="OpenJDK是学习java虚拟机的一手资料，本文主要记录一下在OpenJDK源码的获取下载和编译中遇到的问题。">
+<meta property="og:description" content="前言前面几篇我们依次介绍了zygote进程的启动、ZygoteInit、system server和应用进程的启动，本篇主要介绍zygote侧对于fork流程的性能优化应用–usap pool。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/2021/01/02/How-to-start-Openjdk/dir.png">
-<meta property="og:image" content="http://example.com/2021/01/02/How-to-start-Openjdk/hgclone.png">
-<meta property="og:image" content="http://example.com/2021/01/02/How-to-start-Openjdk/dir.png">
-<meta property="article:published_time" content="2021-01-02T05:45:41.000Z">
-<meta property="article:modified_time" content="2021-02-12T10:33:44.763Z">
+<meta property="article:published_time" content="2021-02-12T14:43:45.000Z">
+<meta property="article:modified_time" content="2021-02-12T14:45:37.839Z">
 <meta property="article:author" content="Woods Arrow">
-<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="AOSP">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2021/01/02/How-to-start-Openjdk/dir.png">
 
 
 
@@ -124,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://example.com/2021/01/02/How-to-start-Openjdk/"/>
+  <link rel="canonical" href="http://example.com/2021/02/12/Start-of-Android-zygote-5/"/>
 
 
 
 
 
-  <title>【OJ】OpenJDK源码下载与编译 | Woods的个人博客</title>
+  <title>【AOSP】zygote和应用的启动（五）--从usap pool fork应用 | Woods的个人博客</title>
   
 
 
@@ -247,7 +243,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/02/How-to-start-Openjdk/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/12/Start-of-Android-zygote-5/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -264,7 +260,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">【OJ】OpenJDK源码下载与编译</h1>
+          <h1 class="post-title" itemprop="name headline">【AOSP】zygote和应用的启动（五）--从usap pool fork应用</h1>
         
 
         <div class="post-meta">
@@ -276,8 +272,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-01-02T13:45:41+08:00">
-                2021-01-02
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-02-12T22:43:45+08:00">
+                2021-02-12
               </time>
             
 
@@ -314,25 +310,8 @@
       
 
       
-        <p>OpenJDK是学习java虚拟机的一手资料，本文主要记录一下在OpenJDK源码的获取下载和编译中遇到的问题。</p>
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>前面几篇我们依次介绍了zygote进程的启动、ZygoteInit、system server和应用进程的启动，本篇主要介绍zygote侧对于fork流程的性能优化应用–usap pool。</p>
 <a id="more"></a>
-
-<h1 id="OpenJDK源码下载"><a href="#OpenJDK源码下载" class="headerlink" title="OpenJDK源码下载"></a>OpenJDK源码下载</h1><p>OpenJDK源码的下载方式我总结为主要有三种方式：</p>
-<h3 id="1-从官网下载zip包到本地"><a href="#1-从官网下载zip包到本地" class="headerlink" title="1 从官网下载zip包到本地"></a>1 从官网下载zip包到本地</h3><p>优点是直观方便，缺点是版本管理和更新不便；</p>
-<p>官网地址<br>hg.openjdk.java.net<br>比如需要 下载jdk15的版本，则只需要点击截图中左侧的zip即可使用浏览器进行下载。<br><img src="/2021/01/02/How-to-start-Openjdk/dir.png" alt="avatar"></p>
-<h3 id="2-使用mercurial管理工具下载"><a href="#2-使用mercurial管理工具下载" class="headerlink" title="2 使用mercurial管理工具下载"></a>2 使用mercurial管理工具下载</h3><p><img src="/2021/01/02/How-to-start-Openjdk/hgclone.png" alt="avatar"><br>openjdk官方是使用mercurial进行代码仓管理，因此可以用hg clone下载源码，首先进入terminal安装mercurial，然后同步代码到本地，比如jdk8：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hg clone http:&#x2F;&#x2F;hg.openjdk.java.net&#x2F;jdk8&#x2F;jdk8</span><br></pre></td></tr></table></figure>
-<p>同步完成后，使用代码仓的./get_source.sh脚本更新源码。<br>笔者在无代理的网络环境使用该方式总是超时失败，遂放弃。</p>
-<h3 id="3-使用git工具进行下载"><a href="#3-使用git工具进行下载" class="headerlink" title="3 使用git工具进行下载"></a>3 使用git工具进行下载</h3><p>openjdk在GitHub上也建立了代码仓，因此可以直接从官方仓库进行clone；</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone git@github.com:openjdk&#x2F;jdk.git</span><br></pre></td></tr></table></figure>
-<p>同样由于网络问题同步失败。<br>好在国内码云上有同步的镜像仓库，解了燃眉之急。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone git@gitee.com:mirrors&#x2F;openjdk.git</span><br></pre></td></tr></table></figure>
-<h1 id="OpenJDK源码编译"><a href="#OpenJDK源码编译" class="headerlink" title="OpenJDK源码编译"></a>OpenJDK源码编译</h1><p>相比源代码下载，openjdk的编译倒简单一些，主要是：<br>1)configure</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chmod a+x configure</span><br><span class="line">.&#x2F;configure --with-boot-jdk ~&#x2F;path&#x2F;to&#x2F;jdk</span><br></pre></td></tr></table></figure>
-<p>这个过程的主要问题在于第一步的configure的时候就要依赖旧版本jdk用于后续编译，比如从码云上同步下来的源码编译时需要依赖jdk 15 16 17，而Ubuntu18官方源提供的jdk最新版本只有11，因此只能曲线救国，基于jdk11环境和jdk13源码、jdk15源码逐步编译出新版本的jdk。如果当前已安装的jdk环境是满足源码版本N-1要求的，则只需要./configure即可。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">configure: Potential Boot JDK found at &#x2F;usr&#x2F;lib&#x2F;jvm&#x2F;java-1.11.0-openjdk-amd64 is incorrect JDK version (openjdk version &quot;11.0.9.1&quot; 2020-11-04 OpenJDK Runtime Environment (build 11.0.9.1+1-Ubuntu-0ubuntu1.18.04) OpenJDK 64-Bit Server VM (build 11.0.9.1+1-Ubuntu-0ubuntu1.18.04, mixed mode, sharing)); ignoring</span><br><span class="line">configure: (Your Boot JDK version must be one of: 15 16 17)</span><br><span class="line">configure: Could not find a valid Boot JDK. OpenJDK distributions are available at http:&#x2F;&#x2F;jdk.java.net&#x2F;.</span><br><span class="line">configure: This might be fixed by explicitly setting --with-boot-jdk</span><br><span class="line">configure: error: Cannot continue</span><br></pre></td></tr></table></figure>
-<p>以jdk12为例，基于jdk11环境进行configure和make之后，javac等二进制文件在build/linux-x86_64-server-release/jdk/bin目录；<br><img src="/2021/01/02/How-to-start-Openjdk/dir.png" alt="avatar"></p>
-
       
     </div>
     
@@ -349,7 +328,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/JVM/" rel="tag"># JVM</a>
+            <a href="/tags/AOSP/" rel="tag"># AOSP</a>
           
         </div>
       
@@ -362,14 +341,18 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/2021/02/12/Start-of-Android-zygote-4/" rel="next" title="【AOSP】zygote和应用的启动（四）--android应用启动">
+                <i class="fa fa-chevron-left"></i> 【AOSP】zygote和应用的启动（四）--android应用启动
+              </a>
+            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/01/10/Start-of-Android-zygote-1/" rel="prev" title="【AOSP】zygote和应用的启动（一）--zygote进程启动">
-                【AOSP】zygote和应用的启动（一）--zygote进程启动 <i class="fa fa-chevron-right"></i>
+              <a href="/2021/02/12/GC-fundamentals/" rel="prev" title="【JVM】GC基础知识">
+                【JVM】GC基础知识 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -497,7 +480,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#OpenJDK%E6%BA%90%E7%A0%81%E4%B8%8B%E8%BD%BD"><span class="nav-number">1.</span> <span class="nav-text">OpenJDK源码下载</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%BB%8E%E5%AE%98%E7%BD%91%E4%B8%8B%E8%BD%BDzip%E5%8C%85%E5%88%B0%E6%9C%AC%E5%9C%B0"><span class="nav-number">1.0.1.</span> <span class="nav-text">1 从官网下载zip包到本地</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%BD%BF%E7%94%A8mercurial%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7%E4%B8%8B%E8%BD%BD"><span class="nav-number">1.0.2.</span> <span class="nav-text">2 使用mercurial管理工具下载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E4%BD%BF%E7%94%A8git%E5%B7%A5%E5%85%B7%E8%BF%9B%E8%A1%8C%E4%B8%8B%E8%BD%BD"><span class="nav-number">1.0.3.</span> <span class="nav-text">3 使用git工具进行下载</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#OpenJDK%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91"><span class="nav-number">2.</span> <span class="nav-text">OpenJDK源码编译</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li></ol></div>
             
 
           </div>
