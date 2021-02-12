@@ -87,7 +87,7 @@
 <meta property="og:description" content="前言最近在复习数据结构和算法知识，发现很多东西学完不常用就忘，因此决定复习的同时在这里记录梳理下，便于后续温故知新以及互相交流，使用的语言主要为java。 排序一般是我们学习数据结构的入门第一课，一些基础数据结构和算法的概念从这里入手也更容易理解，算法系列也从排序展开，本篇主要为冒泡排序和插入排序。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-02-06T10:37:15.000Z">
-<meta property="article:modified_time" content="2021-02-12T14:37:41.151Z">
+<meta property="article:modified_time" content="2021-02-12T14:51:19.231Z">
 <meta property="article:author" content="Woods Arrow">
 <meta property="article:tag" content="Algorithm">
 <meta name="twitter:card" content="summary">
@@ -313,7 +313,7 @@
         <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>最近在复习数据结构和算法知识，发现很多东西学完不常用就忘，因此决定复习的同时在这里记录梳理下，便于后续温故知新以及互相交流，使用的语言主要为java。</p>
 <p>排序一般是我们学习数据结构的入门第一课，一些基础数据结构和算法的概念从这里入手也更容易理解，算法系列也从排序展开，本篇主要为冒泡排序和插入排序。</p>
 <a id="more"></a>
-<h1 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">对一个一个无序数组进行从小到大排序。</span><br><span class="line">比如输入：9，2，6，3，5，4</span><br><span class="line">输出：2，3，4，5，6，9</span><br></pre></td></tr></table></figure>
+<h1 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">对一个无序数组进行从小到大排序。</span><br><span class="line">比如输入：9，2，6，3，5，4</span><br><span class="line">输出：2，3，4，5，6，9</span><br></pre></td></tr></table></figure>
 <h1 id="冒泡排序"><a href="#冒泡排序" class="headerlink" title="冒泡排序"></a>冒泡排序</h1><p>冒泡排序一般是大学c/java语言课讲解for循环的典型case，虽然时间复杂度达到了O(n^2)，但比较直观容易理解。如这个排序算法的名字，该排序算法的核心思想是:在每一轮的遍历中，每次找出当前最小/最大的数字依次前移/后移，最终通过n轮遍历完成整个数组的有序。举个例子如下：<br>输入为：9，2，6，3，5，4</p>
 <p>由于我们期望最终是从到大排列，因此我们每一轮找出当前最大的值移动到最后，而找出最大值的方法就是通过每次相邻两个元素的比较，如果前面的值较大，则交换位置，进行下一个位置元素的比较；如果后面的值较大，则直接进入下一轮元素的比较。</p>
 <p>第一轮遍历：<br>第一次比较的是第0和第1个元素，由于9比2大，则将9与2交换位置，数组变成：2，9，6，3，5，4<br>第二次比较的是第1和第2个元素，由于9比6大，则将9与6继续交换位置，数组变成：2，6，9，3，5，4<br>…<br>这样依次递推，直至完成第n-1和第n个元素的比较，也同时完成第一轮遍历，元素的排列顺序变成：2，6，3，5，4，9<br>我们发现最大值9在第一轮遍历完成后已经被放到了最后，而这个过程也刚好可以形象地描述为最大的泡泡逐渐被移到最后的过程。</p>
