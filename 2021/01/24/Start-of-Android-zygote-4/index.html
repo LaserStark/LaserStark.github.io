@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="AOSP," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言前面几篇我们依次介绍了zygote进程的启动、ZygoteInit以及system server进程的启动，本篇主要介绍应用的启动流程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【AOSP】zygote和应用的启动（四）--android应用启动">
+<meta property="og:url" content="http://example.com/2021/01/24/Start-of-Android-zygote-4/index.html">
+<meta property="og:site_name" content="Woods的个人博客">
+<meta property="og:description" content="前言前面几篇我们依次介绍了zygote进程的启动、ZygoteInit以及system server进程的启动，本篇主要介绍应用的启动流程。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-01-24T14:40:53.000Z">
+<meta property="article:modified_time" content="2021-02-17T10:22:59.443Z">
+<meta property="article:author" content="Woods Arrow">
+<meta property="article:tag" content="AOSP">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2021/01/24/Start-of-Android-zygote-4/"/>
+
+
+
+
+
+  <title>【AOSP】zygote和应用的启动（四）--android应用启动 | Woods的个人博客</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Woods的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/%20" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/24/Start-of-Android-zygote-4/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/woods.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Woods的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【AOSP】zygote和应用的启动（四）--android应用启动</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-01-24T22:40:53+08:00">
+                2021-01-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>前面几篇我们依次介绍了zygote进程的启动、ZygoteInit以及system server进程的启动，本篇主要介绍应用的启动流程。</p>
+<a id="more"></a>
+
+<h1 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h1><p>system server进程对应用进行管理的service主要有AMS(Activity Manage Service) PMS(Package Manager Service) WMS(Window Manager Service)等。</p>
+<p>应用启动的主要流程如下：点击桌面应用图标-&gt; launcher通过binder发送消息给AMS -&gt; AMS通过socket发送消息给zygote -&gt; zygote接收到消息后进行fork -&gt;将fork结果返回给AMS -&gt; AMS和应用进行后续通信和处理。本篇主要关注AMS和zygote通信的流程。</p>
+<h1 id="AMS侧发送消息"><a href="#AMS侧发送消息" class="headerlink" title="AMS侧发送消息"></a>AMS侧发送消息</h1><p>AMS收到launcher发来的启动应用的消息后，会调用到startProcess方法，在该方法内会继续调用到ProcessList的startProcess方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;frameworks&#x2F;base&#x2F;services&#x2F;core&#x2F;java&#x2F;com&#x2F;android&#x2F;server&#x2F;am&#x2F;ActivityManagerService.java</span><br><span class="line"></span><br><span class="line">19614          @Override</span><br><span class="line">19615          public void startProcess(String processName, ApplicationInfo info, boolean knownToBeDead,</span><br><span class="line">19616                  boolean isTop, String hostingType, ComponentName hostingName) &#123;</span><br><span class="line">19617              try &#123;</span><br><span class="line">19622                  synchronized (ActivityManagerService.this) &#123;</span><br><span class="line">19623                      &#x2F;&#x2F; If the process is known as top app, set a hint so when the process is</span><br><span class="line">19624                      &#x2F;&#x2F; started, the top priority can be applied immediately to avoid cpu being</span><br><span class="line">19625                      &#x2F;&#x2F; preempted by other processes before attaching the process of top app.</span><br><span class="line">19626                      startProcessLocked(processName, info, knownToBeDead, 0 &#x2F;* intentFlags *&#x2F;,</span><br><span class="line">19627                              new HostingRecord(hostingType, hostingName, isTop),</span><br><span class="line">19628                              ZYGOTE_POLICY_FLAG_LATENCY_SENSITIVE, false &#x2F;* allowWhileBooting *&#x2F;,</span><br><span class="line">19629                              false &#x2F;* isolated *&#x2F;, true &#x2F;* keepIfLarge *&#x2F;);</span><br><span class="line">19630                  &#125;</span><br><span class="line">19631              &#125; finally &#123;</span><br><span class="line">19632                  Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);</span><br><span class="line">19633              &#125;</span><br><span class="line">19634          &#125;</span><br><span class="line"></span><br><span class="line">3149      @GuardedBy(&quot;this&quot;)</span><br><span class="line">3150      final ProcessRecord startProcessLocked(String processName,</span><br><span class="line">3151              ApplicationInfo info, boolean knownToBeDead, int intentFlags,</span><br><span class="line">3152              HostingRecord hostingRecord, int zygotePolicyFlags, boolean allowWhileBooting,</span><br><span class="line">3153              boolean isolated, boolean keepIfLarge) &#123;</span><br><span class="line">3154          return mProcessList.startProcessLocked(processName, info, knownToBeDead, intentFlags,</span><br><span class="line">3155                  hostingRecord, zygotePolicyFlags, allowWhileBooting, isolated, 0 &#x2F;* isolatedUid *&#x2F;,</span><br><span class="line">3156                  keepIfLarge, null &#x2F;* ABI override *&#x2F;, null &#x2F;* entryPoint *&#x2F;,</span><br><span class="line">3157                  null &#x2F;* entryPointArgs *&#x2F;, null &#x2F;* crashHandler *&#x2F;);</span><br><span class="line">3158      &#125;</span><br></pre></td></tr></table></figure>
+<p>从ProcessList的startProcess第2276行开始，根据record的使用zygote的不同调用不同的zygote，未进行区分则进入最后一个分支Process.start。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;frameworks&#x2F;base&#x2F;services&#x2F;core&#x2F;java&#x2F;com&#x2F;android&#x2F;server&#x2F;am&#x2F;ProcessList.java</span><br><span class="line"></span><br><span class="line">2201      private Process.ProcessStartResult startProcess(HostingRecord hostingRecord, String entryPoint,</span><br><span class="line">2202              ProcessRecord app, int uid, int[] gids, int runtimeFlags, int zygotePolicyFlags,</span><br><span class="line">2203              int mountExternal, String seInfo, String requiredAbi, String instructionSet,</span><br><span class="line">2204              String invokeWith, long startTime) &#123;</span><br><span class="line">2205          try &#123;</span><br><span class="line">... </span><br><span class="line">2276              final Process.ProcessStartResult startResult;</span><br><span class="line">2277              if (hostingRecord.usesWebviewZygote()) &#123;</span><br><span class="line">2278                  startResult &#x3D; startWebView(entryPoint,</span><br><span class="line">2279                          app.processName, uid, uid, gids, runtimeFlags, mountExternal,</span><br><span class="line">2280                          app.info.targetSdkVersion, seInfo, requiredAbi, instructionSet,</span><br><span class="line">2281                          app.info.dataDir, null, app.info.packageName, app.mDisabledCompatChanges,</span><br><span class="line">2282                          new String[]&#123;PROC_START_SEQ_IDENT + app.startSeq&#125;);</span><br><span class="line">2283              &#125; else if (hostingRecord.usesAppZygote()) &#123;</span><br><span class="line">2284                  final AppZygote appZygote &#x3D; createAppZygoteForProcessIfNeeded(app);</span><br><span class="line">2285  </span><br><span class="line">2286                  &#x2F;&#x2F; We can&#39;t isolate app data and storage data as parent zygote already did that.</span><br><span class="line">2287                  startResult &#x3D; appZygote.getProcess().start(entryPoint,</span><br><span class="line">2288                          app.processName, uid, uid, gids, runtimeFlags, mountExternal,</span><br><span class="line">2289                          app.info.targetSdkVersion, seInfo, requiredAbi, instructionSet,</span><br><span class="line">2290                          app.info.dataDir, null, app.info.packageName,</span><br><span class="line">2291                          &#x2F;*zygotePolicyFlags&#x3D;*&#x2F; ZYGOTE_POLICY_FLAG_EMPTY, isTopApp,</span><br><span class="line">2292                          app.mDisabledCompatChanges, pkgDataInfoMap, whitelistedAppDataInfoMap,</span><br><span class="line">2293                          false, false,</span><br><span class="line">2294                          new String[]&#123;PROC_START_SEQ_IDENT + app.startSeq&#125;);</span><br><span class="line">2295              &#125; else &#123;</span><br><span class="line">2296                  startResult &#x3D; Process.start(entryPoint,</span><br><span class="line">2297                          app.processName, uid, uid, gids, runtimeFlags, mountExternal,</span><br><span class="line">2298                          app.info.targetSdkVersion, seInfo, requiredAbi, instructionSet,</span><br><span class="line">2299                          app.info.dataDir, invokeWith, app.info.packageName, zygotePolicyFlags,</span><br><span class="line">2300                          isTopApp, app.mDisabledCompatChanges, pkgDataInfoMap,</span><br><span class="line">2301                          whitelistedAppDataInfoMap, bindMountAppsData, bindMountAppStorageDirs,</span><br><span class="line">2302                          new String[]&#123;PROC_START_SEQ_IDENT + app.startSeq&#125;);</span><br><span class="line">2303              &#125;</span><br><span class="line">2305              return startResult;</span><br><span class="line">2306          &#125; finally &#123;</span><br><span class="line">2307              Trace.traceEnd(Trace.TRACE_TAG_ACTIVITY_MANAGER);</span><br><span class="line">2308          &#125;</span><br><span class="line">2309      &#125;</span><br></pre></td></tr></table></figure>
+<p>Process.start会继续调用ZygoteProcess的start方法，而方法ZygoteProcess.start实际上是ZygoteProcess.startViaZygote方法的封装，在startViaZygote中会添加应用特有的、需要传递给zygote的相关选项，比如target version、uid、nice name等，添加完成后即将调用zygoteSendArgsAndGetResult正式开始和zygote进行通信，在通信前会先获取socket的状态。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;frameworks&#x2F;base&#x2F;core&#x2F;java&#x2F;android&#x2F;os&#x2F;ZygoteProcess.java</span><br><span class="line"></span><br><span class="line">626      private Process.ProcessStartResult startViaZygote(@NonNull final String processClass,</span><br><span class="line">627                                                        @Nullable final String niceName,</span><br><span class="line">628                                                        final int uid, final int gid,</span><br><span class="line">629                                                        @Nullable final int[] gids,</span><br><span class="line">630                                                        int runtimeFlags, int mountExternal,</span><br><span class="line">631                                                        int targetSdkVersion,</span><br><span class="line">632                                                        @Nullable String seInfo,</span><br><span class="line">633                                                        @NonNull String abi,</span><br><span class="line">634                                                        @Nullable String instructionSet,</span><br><span class="line">635                                                        @Nullable String appDataDir,</span><br><span class="line">636                                                        @Nullable String invokeWith,</span><br><span class="line">637                                                        boolean startChildZygote,</span><br><span class="line">638                                                        @Nullable String packageName,</span><br><span class="line">639                                                        int zygotePolicyFlags,</span><br><span class="line">640                                                        boolean isTopApp,</span><br><span class="line">641                                                        @Nullable long[] disabledCompatChanges,</span><br><span class="line">642                                                        @Nullable Map&lt;String, Pair&lt;String, Long&gt;&gt;</span><br><span class="line">643                                                                pkgDataInfoMap,</span><br><span class="line">644                                                        @Nullable Map&lt;String, Pair&lt;String, Long&gt;&gt;</span><br><span class="line">645                                                                whitelistedDataInfoMap,</span><br><span class="line">646                                                        boolean bindMountAppsData,</span><br><span class="line">647                                                        boolean bindMountAppStorageDirs,</span><br><span class="line">648                                                        @Nullable String[] extraArgs)</span><br><span class="line">649                                                        throws ZygoteStartFailedEx &#123;</span><br><span class="line">650          ArrayList&lt;String&gt; argsForZygote &#x3D; new ArrayList&lt;&gt;();</span><br><span class="line">651  </span><br><span class="line">652          &#x2F;&#x2F; --runtime-args, --setuid&#x3D;, --setgid&#x3D;,</span><br><span class="line">653          &#x2F;&#x2F; and --setgroups&#x3D; must go first</span><br><span class="line">654          argsForZygote.add(&quot;--runtime-args&quot;);</span><br><span class="line">655          argsForZygote.add(&quot;--setuid&#x3D;&quot; + uid);</span><br><span class="line">656          argsForZygote.add(&quot;--setgid&#x3D;&quot; + gid);</span><br><span class="line">657          argsForZygote.add(&quot;--runtime-flags&#x3D;&quot; + runtimeFlags);</span><br><span class="line">676          argsForZygote.add(&quot;--target-sdk-version&#x3D;&quot; + targetSdkVersion);</span><br><span class="line">677  </span><br><span class="line">678          &#x2F;&#x2F; --setgroups is a comma-separated list</span><br><span class="line">679          if (gids !&#x3D; null &amp;&amp; gids.length &gt; 0) &#123;</span><br><span class="line">680              final StringBuilder sb &#x3D; new StringBuilder();</span><br><span class="line">681              sb.append(&quot;--setgroups&#x3D;&quot;);</span><br><span class="line">682  </span><br><span class="line">683              final int sz &#x3D; gids.length;</span><br><span class="line">684              for (int i &#x3D; 0; i &lt; sz; i++) &#123;</span><br><span class="line">685                  if (i !&#x3D; 0) &#123;</span><br><span class="line">686                      sb.append(&#39;,&#39;);</span><br><span class="line">687                  &#125;</span><br><span class="line">688                  sb.append(gids[i]);</span><br><span class="line">689              &#125;</span><br><span class="line">722  </span><br><span class="line">723          if (isTopApp) &#123;</span><br><span class="line">724              argsForZygote.add(Zygote.START_AS_TOP_APP_ARG);</span><br><span class="line">725          &#125;</span><br><span class="line"></span><br><span class="line">766  </span><br><span class="line">767          if (bindMountAppsData) &#123;</span><br><span class="line">768              argsForZygote.add(Zygote.BIND_MOUNT_APP_DATA_DIRS);</span><br><span class="line">769          &#125;</span><br><span class="line">770  </span><br><span class="line">771          if (disabledCompatChanges !&#x3D; null &amp;&amp; disabledCompatChanges.length &gt; 0) &#123;</span><br><span class="line">772              StringBuilder sb &#x3D; new StringBuilder();</span><br><span class="line">773              sb.append(&quot;--disabled-compat-changes&#x3D;&quot;);</span><br><span class="line">774  </span><br><span class="line">775              int sz &#x3D; disabledCompatChanges.length;</span><br><span class="line">776              for (int i &#x3D; 0; i &lt; sz; i++) &#123;</span><br><span class="line">777                  if (i !&#x3D; 0) &#123;</span><br><span class="line">778                      sb.append(&#39;,&#39;);</span><br><span class="line">779                  &#125;</span><br><span class="line">780                  sb.append(disabledCompatChanges[i]);</span><br><span class="line">781              &#125;</span><br><span class="line">782  </span><br><span class="line">783              argsForZygote.add(sb.toString());</span><br><span class="line">784          &#125;</span><br><span class="line">785  </span><br><span class="line">786          argsForZygote.add(processClass);</span><br><span class="line">787  </span><br><span class="line">788          if (extraArgs !&#x3D; null) &#123;</span><br><span class="line">789              Collections.addAll(argsForZygote, extraArgs);</span><br><span class="line">790          &#125;</span><br><span class="line">791  </span><br><span class="line">792          synchronized(mLock) &#123;</span><br><span class="line">793              &#x2F;&#x2F; The USAP pool can not be used if the application will not use the systems graphics</span><br><span class="line">794              &#x2F;&#x2F; driver.  If that driver is requested use the Zygote application start path.</span><br><span class="line">795              return zygoteSendArgsAndGetResult(openZygoteSocketIfNeeded(abi),</span><br><span class="line">796                                                zygotePolicyFlags,</span><br><span class="line">797                                                argsForZygote);</span><br><span class="line">798          &#125;</span><br><span class="line">799      &#125;</span><br></pre></td></tr></table></figure>
+<p>我们先来关注795行与zygote socket通信相关的方法openZygoteSocketIfNeeded，代码如下，会根据支持的abi选择64位zygote还是32位zygote，但建立通信的过程是一致的。以和primary zygote建立socket为例，调用ZygoteState.connect方法获取通信用的ZygoteState实例，其中usap是Q版本起新增的zygote侧用于prefork提升性能的优化，本篇暂时不深入探讨，只关注zygote socket。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;frameworks&#x2F;base&#x2F;core&#x2F;java&#x2F;android&#x2F;os&#x2F;ZygoteProcess.java</span><br><span class="line"></span><br><span class="line">1077      &#x2F;**</span><br><span class="line">1078       * Tries to open a session socket to a Zygote process with a compatible ABI if one is not</span><br><span class="line">1079       * already open. If a compatible session socket is already open that session socket is returned.</span><br><span class="line">1080       * This function may block and may have to try connecting to multiple Zygotes to find the</span><br><span class="line">1081       * appropriate one.  Requires that mLock be held.</span><br><span class="line">1082       *&#x2F;</span><br><span class="line">1083      @GuardedBy(&quot;mLock&quot;)</span><br><span class="line">1084      private ZygoteState openZygoteSocketIfNeeded(String abi) throws ZygoteStartFailedEx &#123;</span><br><span class="line">1085          try &#123;</span><br><span class="line">1086              attemptConnectionToPrimaryZygote();</span><br><span class="line">1088              if (primaryZygoteState.matches(abi)) &#123;</span><br><span class="line">1089                  return primaryZygoteState;</span><br><span class="line">1090              &#125;</span><br><span class="line">1092              if (mZygoteSecondarySocketAddress !&#x3D; null) &#123;</span><br><span class="line">1093                  &#x2F;&#x2F; The primary zygote didn&#39;t match. Try the secondary.</span><br><span class="line">1094                  attemptConnectionToSecondaryZygote();</span><br><span class="line">1096                  if (secondaryZygoteState.matches(abi)) &#123;</span><br><span class="line">1097                      return secondaryZygoteState;</span><br><span class="line">1098                  &#125;</span><br><span class="line">1099              &#125;</span><br><span class="line">1100          &#125; catch (IOException ioe) &#123;</span><br><span class="line">1101              throw new ZygoteStartFailedEx(&quot;Error connecting to zygote&quot;, ioe);</span><br><span class="line">1102          &#125;</span><br><span class="line">1103  </span><br><span class="line">1104          throw new ZygoteStartFailedEx(&quot;Unsupported zygote ABI: &quot; + abi);</span><br><span class="line">1105      &#125;</span><br><span class="line"></span><br><span class="line">1052      private void attemptConnectionToPrimaryZygote() throws IOException &#123;</span><br><span class="line">1053          if (primaryZygoteState &#x3D;&#x3D; null || primaryZygoteState.isClosed()) &#123;</span><br><span class="line">1054              primaryZygoteState &#x3D;</span><br><span class="line">1055                      ZygoteState.connect(mZygoteSocketAddress, mUsapPoolSocketAddress);</span><br><span class="line">1056  </span><br><span class="line">1057              maybeSetApiBlacklistExemptions(primaryZygoteState, false);</span><br><span class="line">1058              maybeSetHiddenApiAccessLogSampleRate(primaryZygoteState);</span><br><span class="line">1059          &#125;</span><br><span class="line">1060      &#125;</span><br><span class="line"></span><br><span class="line">&#x2F;frameworks&#x2F;base&#x2F;core&#x2F;java&#x2F;android&#x2F;os&#x2F;ZygoteProcess$ZygoteState.java</span><br><span class="line">188          static ZygoteState connect(@NonNull LocalSocketAddress zygoteSocketAddress,</span><br><span class="line">189                  @Nullable LocalSocketAddress usapSocketAddress)</span><br><span class="line">190                  throws IOException &#123;</span><br><span class="line">192              DataInputStream zygoteInputStream;</span><br><span class="line">193              BufferedWriter zygoteOutputWriter;</span><br><span class="line">194              final LocalSocket zygoteSessionSocket &#x3D; new LocalSocket();</span><br><span class="line">196              if (zygoteSocketAddress &#x3D;&#x3D; null) &#123;</span><br><span class="line">197                  throw new IllegalArgumentException(&quot;zygoteSocketAddress can&#39;t be null&quot;);</span><br><span class="line">198              &#125;</span><br><span class="line">200              try &#123;</span><br><span class="line">201                  zygoteSessionSocket.connect(zygoteSocketAddress);</span><br><span class="line">202                  zygoteInputStream &#x3D; new DataInputStream(zygoteSessionSocket.getInputStream());</span><br><span class="line">203                  zygoteOutputWriter &#x3D;</span><br><span class="line">204                          new BufferedWriter(</span><br><span class="line">205                                  new OutputStreamWriter(zygoteSessionSocket.getOutputStream()),</span><br><span class="line">206                                  Zygote.SOCKET_BUFFER_SIZE);</span><br><span class="line">207              &#125; catch (IOException ex) &#123;</span><br><span class="line">208                  try &#123;</span><br><span class="line">209                      zygoteSessionSocket.close();</span><br><span class="line">210                  &#125; catch (IOException ignore) &#123; &#125;</span><br><span class="line">212                  throw ex;</span><br><span class="line">213              &#125;</span><br><span class="line">215              return new ZygoteState(zygoteSocketAddress, usapSocketAddress,</span><br><span class="line">216                                     zygoteSessionSocket, zygoteInputStream, zygoteOutputWriter,</span><br><span class="line">217                                     getAbiList(zygoteOutputWriter, zygoteInputStream));</span><br><span class="line">218          &#125;</span><br></pre></td></tr></table></figure>
+<p>通过openZygoteSocketIfNeeded获取到通信用的socket之后，会继续进入795行的zygoteSendArgsAndGetResult，在该方法中会现将要传递的信息利用ZygoteState的socket传递给zygote，并且等待读取到的应用fork相关的result和pid等信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">463      private Process.ProcessStartResult attemptZygoteSendArgsAndGetResult(</span><br><span class="line">464              ZygoteState zygoteState, String msgStr) throws ZygoteStartFailedEx &#123;</span><br><span class="line">465          try &#123;</span><br><span class="line">466              final BufferedWriter zygoteWriter &#x3D; zygoteState.mZygoteOutputWriter;</span><br><span class="line">467              final DataInputStream zygoteInputStream &#x3D; zygoteState.mZygoteInputStream;</span><br><span class="line">468  </span><br><span class="line">469              zygoteWriter.write(msgStr);</span><br><span class="line">470              zygoteWriter.flush();</span><br><span class="line">471  </span><br><span class="line">472              &#x2F;&#x2F; Always read the entire result from the input stream to avoid leaving</span><br><span class="line">473              &#x2F;&#x2F; bytes in the stream for future process starts to accidentally stumble</span><br><span class="line">474              &#x2F;&#x2F; upon.</span><br><span class="line">475              Process.ProcessStartResult result &#x3D; new Process.ProcessStartResult();</span><br><span class="line">476              result.pid &#x3D; zygoteInputStream.readInt();</span><br><span class="line">477              result.usingWrapper &#x3D; zygoteInputStream.readBoolean();</span><br><span class="line">478  </span><br><span class="line">479              if (result.pid &lt; 0) &#123;</span><br><span class="line">480                  throw new ZygoteStartFailedEx(&quot;fork() failed&quot;);</span><br><span class="line">481              &#125;</span><br><span class="line">482  </span><br><span class="line">483              return result;</span><br><span class="line">484          &#125; catch (IOException ex) &#123;</span><br><span class="line">485              zygoteState.close();</span><br><span class="line">486              Log.e(LOG_TAG, &quot;IO Exception while communicating with Zygote - &quot;</span><br><span class="line">487                      + ex.toString());</span><br><span class="line">488              throw new ZygoteStartFailedEx(ex);</span><br><span class="line">489          &#125;</span><br><span class="line">490      &#125;</span><br></pre></td></tr></table></figure>
+<h1 id="zygote侧接收消息进行处理"><a href="#zygote侧接收消息进行处理" class="headerlink" title="zygote侧接收消息进行处理"></a>zygote侧接收消息进行处理</h1><p>本系列篇二提到，zygote进程在虚拟机创建后会最终从ZygoteInit类的main方法进入java层进行执行，该main方法会进一步调用ZygoteServer的runSelectLoop方法进入死循环，持续监听来自socket的消息。当来自AMS的消息发送过来后，最终会进入546行processOneCommand进行处理.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;frameworks&#x2F;base&#x2F;core&#x2F;java&#x2F;com&#x2F;android&#x2F;internal&#x2F;os&#x2F;ZygoteServer.java</span><br><span class="line"></span><br><span class="line">419      &#x2F;**</span><br><span class="line">420       * Runs the zygote process&#39;s select loop. Accepts new connections as</span><br><span class="line">421       * they happen, and reads commands from connections one spawn-request&#39;s</span><br><span class="line">422       * worth at a time.</span><br><span class="line">423       *&#x2F;</span><br><span class="line">424      Runnable runSelectLoop(String abiList) &#123;</span><br><span class="line">425          ArrayList&lt;FileDescriptor&gt; socketFDs &#x3D; new ArrayList&lt;&gt;();</span><br><span class="line">426          ArrayList&lt;ZygoteConnection&gt; peers &#x3D; new ArrayList&lt;&gt;();</span><br><span class="line">427  </span><br><span class="line">428          socketFDs.add(mZygoteSocket.getFileDescriptor());</span><br><span class="line">429          peers.add(null);</span><br><span class="line">432  </span><br><span class="line">433          while (true) &#123;</span><br><span class="line">512              int pollReturnValue;</span><br><span class="line">513              try &#123;</span><br><span class="line">514                  pollReturnValue &#x3D; Os.poll(pollFDs, pollTimeoutMs);</span><br><span class="line">515              &#125; catch (ErrnoException ex) &#123;</span><br><span class="line">516                  throw new RuntimeException(&quot;poll failed&quot;, ex);</span><br><span class="line">517              &#125;</span><br><span class="line">518  </span><br><span class="line">519              if (pollReturnValue &#x3D;&#x3D; 0) &#123;</span><br><span class="line">526              &#125; else &#123;</span><br><span class="line">527                  boolean usapPoolFDRead &#x3D; false;</span><br><span class="line">528  </span><br><span class="line">529                  while (--pollIndex &gt;&#x3D; 0) &#123;</span><br><span class="line">530                      if ((pollFDs[pollIndex].revents &amp; POLLIN) &#x3D;&#x3D; 0) &#123;</span><br><span class="line">531                          continue;</span><br><span class="line">532                      &#125;</span><br><span class="line">533  </span><br><span class="line">534                      if (pollIndex &#x3D;&#x3D; 0) &#123;</span><br><span class="line">535                          &#x2F;&#x2F; Zygote server socket</span><br><span class="line">537                          ZygoteConnection newPeer &#x3D; acceptCommandPeer(abiList);</span><br><span class="line">538                          peers.add(newPeer);</span><br><span class="line">539                          socketFDs.add(newPeer.getFileDescriptor());</span><br><span class="line">540  </span><br><span class="line">541                      &#125; else if (pollIndex &lt; usapPoolEventFDIndex) &#123;</span><br><span class="line">542                          &#x2F;&#x2F; Session socket accepted from the Zygote server socket</span><br><span class="line">544                          try &#123;</span><br><span class="line">545                              ZygoteConnection connection &#x3D; peers.get(pollIndex);</span><br><span class="line">546                              final Runnable command &#x3D; connection.processOneCommand(this);</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">...</span><br><span class="line">683      &#125;</span><br></pre></td></tr></table></figure>
+<p>在processOneCommand方法中，从AMS传过来的消息会通过构造ZygoteArguments实例并对其进行解析，解析完成后调用Zygote.forkAndSpecialize方法进行fork应用，其具体流程大部分与forSystemServer共用，在篇三中已经进行了介绍，此处不再赘述。同样地，对于fork返回的pid，如果为0说明已经进行子进程，否则说明当前为zygote进程 ，根据进程号进行相应的处理，同时应用子进程fork成功的信息也会通过socket再次返回给AMS，应用启动进程fork结束。</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br></pre></td><td class="code"><pre><span class="line"> &#x2F;frameworks&#x2F;base&#x2F;core&#x2F;java&#x2F;com&#x2F;android&#x2F;internal&#x2F;os&#x2F;ZygoteConnection.java</span><br><span class="line"></span><br><span class="line">113      &#x2F;**</span><br><span class="line">114       * Reads one start command from the command socket. If successful, a child is forked and a</span><br><span class="line">115       * &#123;@code Runnable&#125; that calls the childs main method (or equivalent) is returned in the child</span><br><span class="line">116       * process. &#123;@code null&#125; is always returned in the parent process (the zygote).</span><br><span class="line">117       *</span><br><span class="line">118       * If the client closes the socket, an &#123;@code EOF&#125; condition is set, which callers can test</span><br><span class="line">119       * for by calling &#123;@code ZygoteConnection.isClosedByPeer&#125;.</span><br><span class="line">120       *&#x2F;</span><br><span class="line">121      Runnable processOneCommand(ZygoteServer zygoteServer) &#123;</span><br><span class="line">122          String[] args;</span><br><span class="line">123  </span><br><span class="line">124          try &#123;</span><br><span class="line">125              args &#x3D; Zygote.readArgumentList(mSocketReader);</span><br><span class="line">126          &#125; catch (IOException ex) &#123;</span><br><span class="line">127              throw new IllegalStateException(&quot;IOException on command socket&quot;, ex);</span><br><span class="line">128          &#125;</span><br><span class="line">137          int pid;</span><br><span class="line">138          FileDescriptor childPipeFd &#x3D; null;</span><br><span class="line">139          FileDescriptor serverPipeFd &#x3D; null;</span><br><span class="line">140  </span><br><span class="line">141          ZygoteArguments parsedArgs &#x3D; new ZygoteArguments(args);</span><br><span class="line">...</span><br><span class="line">243          int [] fdsToClose &#x3D; &#123; -1, -1 &#125;;</span><br><span class="line">244  </span><br><span class="line">245          FileDescriptor fd &#x3D; mSocket.getFileDescriptor();</span><br><span class="line">246  </span><br><span class="line">247          if (fd !&#x3D; null) &#123;</span><br><span class="line">248              fdsToClose[0] &#x3D; fd.getInt$();</span><br><span class="line">249          &#125;</span><br><span class="line">250  </span><br><span class="line">251          fd &#x3D; zygoteServer.getZygoteSocketFileDescriptor();</span><br><span class="line">252  </span><br><span class="line">253          if (fd !&#x3D; null) &#123;</span><br><span class="line">254              fdsToClose[1] &#x3D; fd.getInt$();</span><br><span class="line">255          &#125;</span><br><span class="line">256  </span><br><span class="line">257          pid &#x3D; Zygote.forkAndSpecialize(parsedArgs.mUid, parsedArgs.mGid, parsedArgs.mGids,</span><br><span class="line">258                  parsedArgs.mRuntimeFlags, rlimits, parsedArgs.mMountExternal, parsedArgs.mSeInfo,</span><br><span class="line">259                  parsedArgs.mNiceName, fdsToClose, fdsToIgnore, parsedArgs.mStartChildZygote,</span><br><span class="line">260                  parsedArgs.mInstructionSet, parsedArgs.mAppDataDir, parsedArgs.mIsTopApp,</span><br><span class="line">261                  parsedArgs.mPkgDataInfoList, parsedArgs.mWhitelistedDataInfoList,</span><br><span class="line">262                  parsedArgs.mBindMountAppDataDirs, parsedArgs.mBindMountAppStorageDirs);</span><br><span class="line">263  </span><br><span class="line">264          try &#123;</span><br><span class="line">265              if (pid &#x3D;&#x3D; 0) &#123;</span><br><span class="line">266                  &#x2F;&#x2F; in child</span><br><span class="line">267                  zygoteServer.setForkChild();</span><br><span class="line">269                  zygoteServer.closeServerSocket();</span><br><span class="line">270                  IoUtils.closeQuietly(serverPipeFd);</span><br><span class="line">271                  serverPipeFd &#x3D; null;</span><br><span class="line">273                  return handleChildProc(parsedArgs, childPipeFd, parsedArgs.mStartChildZygote);</span><br><span class="line">274              &#125; else &#123;</span><br><span class="line">275                  &#x2F;&#x2F; In the parent. A pid &lt; 0 indicates a failure and will be handled in</span><br><span class="line">276                  &#x2F;&#x2F; handleParentProc.</span><br><span class="line">277                  IoUtils.closeQuietly(childPipeFd);</span><br><span class="line">278                  childPipeFd &#x3D; null;</span><br><span class="line">279                  handleParentProc(pid, serverPipeFd);</span><br><span class="line">280                  return null;</span><br><span class="line">281              &#125;</span><br><span class="line">282          &#125; finally &#123;</span><br><span class="line">283              IoUtils.closeQuietly(childPipeFd);</span><br><span class="line">284              IoUtils.closeQuietly(serverPipeFd);</span><br><span class="line">285          &#125;</span><br><span class="line">286      &#125;</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/AOSP/" rel="tag"># AOSP</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/01/24/Start-of-Android-zygote-3/" rel="next" title="【AOSP】zygote和应用的启动（三）-- SystemServer的启动">
+                <i class="fa fa-chevron-left"></i> 【AOSP】zygote和应用的启动（三）-- SystemServer的启动
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/01/24/Start-of-Android-zygote-5/" rel="prev" title="【AOSP】zygote和应用的启动（五）--从usap pool fork应用">
+                【AOSP】zygote和应用的启动（五）--从usap pool fork应用 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/woods.gif"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/%20%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">启动流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#AMS%E4%BE%A7%E5%8F%91%E9%80%81%E6%B6%88%E6%81%AF"><span class="nav-number">3.</span> <span class="nav-text">AMS侧发送消息</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#zygote%E4%BE%A7%E6%8E%A5%E6%94%B6%E6%B6%88%E6%81%AF%E8%BF%9B%E8%A1%8C%E5%A4%84%E7%90%86"><span class="nav-number">4.</span> <span class="nav-text">zygote侧接收消息进行处理</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Woods Arrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
