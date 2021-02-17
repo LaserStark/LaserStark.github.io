@@ -79,15 +79,15 @@
 
 
 
-<meta name="description" content="前言基础排序算法（一）介绍了简单的冒泡排序和插入排序，本篇继续介绍排序算法的选择排序和希尔排序。">
+<meta name="description" content="前言基础排序算法（一）介绍了简单的冒泡排序、插入排序和选择排序，时间复杂度均为O(n^2)，本篇介绍复杂度可以达到O(nlogn)的几种排序算法，包括快速排序、归并排序和希尔排序，以及具有O(n)复杂度的桶排序。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="【算法】基础排序算法（二）">
 <meta property="og:url" content="http://example.com/2021/02/06/Sort-algrithm-2/index.html">
 <meta property="og:site_name" content="Woods的个人博客">
-<meta property="og:description" content="前言基础排序算法（一）介绍了简单的冒泡排序和插入排序，本篇继续介绍排序算法的选择排序和希尔排序。">
+<meta property="og:description" content="前言基础排序算法（一）介绍了简单的冒泡排序、插入排序和选择排序，时间复杂度均为O(n^2)，本篇介绍复杂度可以达到O(nlogn)的几种排序算法，包括快速排序、归并排序和希尔排序，以及具有O(n)复杂度的桶排序。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-02-06T14:34:10.000Z">
-<meta property="article:modified_time" content="2021-02-12T14:51:27.459Z">
+<meta property="article:modified_time" content="2021-02-17T13:45:54.143Z">
 <meta property="article:author" content="Woods Arrow">
 <meta property="article:tag" content="Algorithm">
 <meta name="twitter:card" content="summary">
@@ -310,11 +310,27 @@
       
 
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>基础排序算法（一）介绍了简单的冒泡排序和插入排序，本篇继续介绍排序算法的选择排序和希尔排序。</p>
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>基础排序算法（一）介绍了简单的冒泡排序、插入排序和选择排序，时间复杂度均为O(n^2)，本篇介绍复杂度可以达到O(nlogn)的几种排序算法，包括快速排序、归并排序和希尔排序，以及具有O(n)复杂度的桶排序。</p>
 <a id="more"></a>
 
 <h1 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">对一个无序数组进行从小到大排序。</span><br><span class="line">比如输入：9，2，6，3，5，4</span><br><span class="line">输出：2，3，4，5，6，9</span><br></pre></td></tr></table></figure>
-<h1 id="选择排序"><a href="#选择排序" class="headerlink" title="选择排序"></a>选择排序</h1>
+<h1 id="快速排序"><a href="#快速排序" class="headerlink" title="快速排序"></a>快速排序</h1><p>快速排序的思想为：选择数组中某个元素为node，将小于该元素的放在node左侧，大于该元素的放在node右侧，如果当前node两侧的元素均为有序，那么整个数组也是有序的；因此为了达到这样的目标，我们继续对两侧的元素使用同样的方法进行快速排序。</p>
+<p>例如当前有数组：[9，2，6，3，5，4]<br>选择中间位置的（第一个、最后一个或者随机均可）3作为node，则数组可以分为两半[2,] 3, [9, 6, 5, 4]<br>继续对两边的数组进行快排，选择右边数组的5作为node，则右边的数组被分为[4,] 5, [9, 6]<br>最终逐步递归完成全部排序。</p>
+<p>代码参考：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">int[] quickSort(int[] array, int start, int end) &#123;</span><br><span class="line">    int len &#x3D; array.length;</span><br><span class="line">    int[] tmp &#x3D; new int[len];</span><br><span class="line">    int node &#x3D; array[start]; &#x2F;&#x2F; 选择第一个元素作为node</span><br><span class="line">    int rightPos &#x3D; end - 1;</span><br><span class="line">    int leftPos &#x3D; start;</span><br><span class="line">    for (int i &#x3D; start + 1; i &lt; end; i++) &#123;</span><br><span class="line">        if (array[i] &lt;&#x3D; node) &#123;</span><br><span class="line">            tmp[leftPos++] &#x3D; array[i];</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            tmp[rightPos--] &#x3D; array[i];</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    tmp[rightPos] &#x3D; node;</span><br><span class="line">    for (int i &#x3D; 0; i &lt; len; i++) &#123;</span><br><span class="line">        array[i] &#x3D; tmp[i];</span><br><span class="line">    &#125;</span><br><span class="line">    quickSort(array, start, leftPos - 1); &#x2F;&#x2F; 对左半边进行快排</span><br><span class="line">    quickSort(array, rightPos + 1, end); &#x2F;&#x2F; 对右半边进行快排</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>时间复杂度：极端条件下为O(n^2)，一般为O(nlogn)<br>空间复杂度：需要额外的空间进行转存，因此空间复杂度O(n)</p>
+<h1 id="归并排序"><a href="#归并排序" class="headerlink" title="归并排序"></a>归并排序</h1><p>归并排序的核心思想为：将数组排序的分为两组，分别对这两组完成排序后，再将两组merge成一个。</p>
+<p>例如当前有数组：[9，2，6，3，5，4]<br>我们先将其分为两组：[9，2，6]和[3，5，4]，假设两组均用某种方式实现了排序，结果为：[2, 6, 9]和[3, 4, 5]<br>我们开始将其进行merge，首先比较两个数组的第一个元素2&lt;3，因此新数组的第一个元素为2，同时数组1的指针后移一位，数组2的位置不变；<br>由于数组1的当前值6&gt;数组2的当前值3，因此新数组第二个元素为3，数组2的指针后移一位，数组1的指针位置不变。<br>依次类推，最终实现merge后的数组有序。而这两个数组的有序，同样也可以用归并排序的方式获得。</p>
+<p>参考代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">int[] mergeSort(int[] array, int start, int end) &#123;</span><br><span class="line">    if (start &#x3D;&#x3D; end) &#123;</span><br><span class="line">        return array;</span><br><span class="line">    &#125;</span><br><span class="line">    int mid &#x3D; (start + end) &#x2F; 2;</span><br><span class="line">    int[] sortedLeft &#x3D; mergeSort(array, start, mid);</span><br><span class="line">    int[] sortedRight &#x3D; mergeSort(array. mid + 1, end)</span><br><span class="line">    int leftPos &#x3D; start;</span><br><span class="line">    int rightPos &#x3D; start;</span><br><span class="line">    for (int i &#x3D; start; i &lt; end; i++) &#123;</span><br><span class="line">        if (sortedLeft[leftPos] &lt;&#x3D; sortedRight[rightPos]) &#123; &#x2F;&#x2F; 比较两个已经排序好的子数组，进行merge</span><br><span class="line">            array[i] &#x3D; sortedLeft[leftPos];</span><br><span class="line">            leftPos++;</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            array[i] &#x3D; sortedRight[rightPos];</span><br><span class="line">            rightPos++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    return array;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>时间复杂度：O(nlogn)<br>空间复杂度：O(n)</p>
+<h1 id="希尔排序"><a href="#希尔排序" class="headerlink" title="希尔排序"></a>希尔排序</h1><p>希尔排序可以认为是选择排序的优化版本，其核心思想为：每次将数组分为间隔h的n/h个数组，在者n/h个数组内部进行插入排序，最终h达到1，实现整个数组的有序，这样做的好处是，不必为每个元素插入时都进行O(n)次移动。</p>
+<h1 id="桶排序"><a href="#桶排序" class="headerlink" title="桶排序"></a>桶排序</h1><p>桶排序的核心思想为：我们预设k个桶，然后根据某个规则将无序数组的元素放入对应的桶中，然后在桶中进行处理，最终再取出。举一个桶排序特例：每个桶只放值与桶序号相同的元素。</p>
+<p>例如当前有数组：[9，2，6，3，5，4]<br>我们创建长度为10的数组作为桶，依次遍历整个乱序数组，放的过程中对应的桶计数加一，遍历完成后再从桶中取出对应的值，最终桶的状态为：<br>[0, 0, 1, 1, 1, 1, 1, 0, 0, 1]</p>
+<p>参考代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">int[] bucketSort(int[] array) &#123;</span><br><span class="line">    int len &#x3D; array.length;</span><br><span class="line">    int max &#x3D; 0;</span><br><span class="line">    for (int num : array) &#123;</span><br><span class="line">        max &#x3D; max &gt; num ? max : num;</span><br><span class="line">    &#125;</span><br><span class="line">    int[] bucket &#x3D; new int[max]; &#x2F;&#x2F; 创建桶</span><br><span class="line">    for (int num : array) &#123;</span><br><span class="line">        bucket[num]++;</span><br><span class="line">    &#125;</span><br><span class="line">    int pos &#x3D; 0;</span><br><span class="line">    for (int i &#x3D; 0; i &lt; max; i++) &#123;</span><br><span class="line">        int cnt &#x3D; 0;</span><br><span class="line">        while(cnt &lt; bucket[i]) &#123; &#x2F;&#x2F; 从桶中取元素</span><br><span class="line">            array[pos] &#x3D; bucket;</span><br><span class="line">            pos++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>时间复杂度：O(n)<br>空间复杂度：O(N)</p>
+
       
     </div>
     
@@ -354,8 +370,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/02/06/Sort-algrithm-3/" rel="prev" title="【算法】基础排序算法（三）">
-                【算法】基础排序算法（三） <i class="fa fa-chevron-right"></i>
+              <a href="/2021/02/12/Algorithm-slide-window/" rel="prev" title="【算法】滑动窗口">
+                【算法】滑动窗口 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -437,7 +453,7 @@
               
                 <a href="/archives/%20%7C%7C%20archive">
               
-                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-count">11</span>
                   <span class="site-state-item-name">posts</span>
                 </a>
               </div>
@@ -483,7 +499,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E6%8F%8F%E8%BF%B0"><span class="nav-number">2.</span> <span class="nav-text">题目描述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E6%8E%92%E5%BA%8F"><span class="nav-number">3.</span> <span class="nav-text">选择排序</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E6%8F%8F%E8%BF%B0"><span class="nav-number">2.</span> <span class="nav-text">题目描述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F"><span class="nav-number">3.</span> <span class="nav-text">快速排序</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BD%92%E5%B9%B6%E6%8E%92%E5%BA%8F"><span class="nav-number">4.</span> <span class="nav-text">归并排序</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B8%8C%E5%B0%94%E6%8E%92%E5%BA%8F"><span class="nav-number">5.</span> <span class="nav-text">希尔排序</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A1%B6%E6%8E%92%E5%BA%8F"><span class="nav-number">6.</span> <span class="nav-text">桶排序</span></a></li></ol></div>
             
 
           </div>
