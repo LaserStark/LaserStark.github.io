@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="JVM," />
+  <meta name="keywords" content="Algorithm," />
 
 
 
@@ -79,22 +79,18 @@
 
 
 
-<meta name="description" content="OpenJDK是学习java虚拟机的一手资料，本文主要记录一下在OpenJDK源码的获取下载和编译中遇到的问题。">
+<meta name="description" content="前言深度优先搜索（Depth First Search，DFS）和广度优先搜索（Breadth First Search，BFS）是图数据结构中常用的两种搜索算法，顾名思义，前者在搜索过程中优先向当前节点的下一层级进行搜索，后者在搜索过程中优先遍历当前节点的所有子节点，遍历完成后再进行下一层级的搜索。一些场景下，两种算法均可达到预期搜索目标，同时又各有单独适用的场景。本篇先来关注DFS。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="【OJ】OpenJDK源码下载与编译">
-<meta property="og:url" content="http://example.com/2021/01/02/How-to-start-Openjdk/index.html">
+<meta property="og:title" content="【算法】图的深度优先搜索DFS">
+<meta property="og:url" content="http://example.com/2021/02/28/Algorithm-dfs/index.html">
 <meta property="og:site_name" content="Woods的个人博客">
-<meta property="og:description" content="OpenJDK是学习java虚拟机的一手资料，本文主要记录一下在OpenJDK源码的获取下载和编译中遇到的问题。">
+<meta property="og:description" content="前言深度优先搜索（Depth First Search，DFS）和广度优先搜索（Breadth First Search，BFS）是图数据结构中常用的两种搜索算法，顾名思义，前者在搜索过程中优先向当前节点的下一层级进行搜索，后者在搜索过程中优先遍历当前节点的所有子节点，遍历完成后再进行下一层级的搜索。一些场景下，两种算法均可达到预期搜索目标，同时又各有单独适用的场景。本篇先来关注DFS。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://example.com/2021/01/02/How-to-start-Openjdk/dir.png">
-<meta property="og:image" content="http://example.com/2021/01/02/How-to-start-Openjdk/hgclone.png">
-<meta property="og:image" content="http://example.com/2021/01/02/How-to-start-Openjdk/dir.png">
-<meta property="article:published_time" content="2021-01-02T05:45:41.000Z">
-<meta property="article:modified_time" content="2021-02-12T10:33:44.763Z">
+<meta property="article:published_time" content="2021-02-28T13:43:02.000Z">
+<meta property="article:modified_time" content="2021-02-28T14:16:43.081Z">
 <meta property="article:author" content="Woods Arrow">
-<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="Algorithm">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/2021/01/02/How-to-start-Openjdk/dir.png">
 
 
 
@@ -124,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://example.com/2021/01/02/How-to-start-Openjdk/"/>
+  <link rel="canonical" href="http://example.com/2021/02/28/Algorithm-dfs/"/>
 
 
 
 
 
-  <title>【OJ】OpenJDK源码下载与编译 | Woods的个人博客</title>
+  <title>【算法】图的深度优先搜索DFS | Woods的个人博客</title>
   
 
 
@@ -257,7 +253,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/02/How-to-start-Openjdk/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/28/Algorithm-dfs/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -274,7 +270,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">【OJ】OpenJDK源码下载与编译</h1>
+          <h1 class="post-title" itemprop="name headline">【算法】图的深度优先搜索DFS</h1>
         
 
         <div class="post-meta">
@@ -286,8 +282,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-01-02T13:45:41+08:00">
-                2021-01-02
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-02-28T21:43:02+08:00">
+                2021-02-28
               </time>
             
 
@@ -305,8 +301,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2021/01/02/How-to-start-Openjdk/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2021/01/02/How-to-start-Openjdk/" itemprop="commentCount"></span>
+                <a href="/2021/02/28/Algorithm-dfs/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2021/02/28/Algorithm-dfs/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -334,24 +330,14 @@
       
 
       
-        <p>OpenJDK是学习java虚拟机的一手资料，本文主要记录一下在OpenJDK源码的获取下载和编译中遇到的问题。</p>
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>深度优先搜索（Depth First Search，DFS）和广度优先搜索（Breadth First Search，BFS）是图数据结构中常用的两种搜索算法，顾名思义，前者在搜索过程中优先向当前节点的下一层级进行搜索，后者在搜索过程中优先遍历当前节点的所有子节点，遍历完成后再进行下一层级的搜索。一些场景下，两种算法均可达到预期搜索目标，同时又各有单独适用的场景。本篇先来关注DFS。</p>
 <a id="more"></a>
 
-<h1 id="OpenJDK源码下载"><a href="#OpenJDK源码下载" class="headerlink" title="OpenJDK源码下载"></a>OpenJDK源码下载</h1><p>OpenJDK源码的下载方式我总结为主要有三种方式：</p>
-<h3 id="1-从官网下载zip包到本地"><a href="#1-从官网下载zip包到本地" class="headerlink" title="1 从官网下载zip包到本地"></a>1 从官网下载zip包到本地</h3><p>优点是直观方便，缺点是版本管理和更新不便；</p>
-<p>官网地址<br>hg.openjdk.java.net<br>比如需要 下载jdk15的版本，则只需要点击截图中左侧的zip即可使用浏览器进行下载。<br><img src="/2021/01/02/How-to-start-Openjdk/dir.png" alt="avatar"></p>
-<h3 id="2-使用mercurial管理工具下载"><a href="#2-使用mercurial管理工具下载" class="headerlink" title="2 使用mercurial管理工具下载"></a>2 使用mercurial管理工具下载</h3><p><img src="/2021/01/02/How-to-start-Openjdk/hgclone.png" alt="avatar"><br>openjdk官方是使用mercurial进行代码仓管理，因此可以用hg clone下载源码，首先进入terminal安装mercurial，然后同步代码到本地，比如jdk8：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hg clone http:&#x2F;&#x2F;hg.openjdk.java.net&#x2F;jdk8&#x2F;jdk8</span><br></pre></td></tr></table></figure>
-<p>同步完成后，使用代码仓的./get_source.sh脚本更新源码。<br>笔者在无代理的网络环境使用该方式总是超时失败，遂放弃。</p>
-<h3 id="3-使用git工具进行下载"><a href="#3-使用git工具进行下载" class="headerlink" title="3 使用git工具进行下载"></a>3 使用git工具进行下载</h3><p>openjdk在GitHub上也建立了代码仓，因此可以直接从官方仓库进行clone；</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone git@github.com:openjdk&#x2F;jdk.git</span><br></pre></td></tr></table></figure>
-<p>同样由于网络问题同步失败。<br>好在国内码云上有同步的镜像仓库，解了燃眉之急。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone git@gitee.com:mirrors&#x2F;openjdk.git</span><br></pre></td></tr></table></figure>
-<h1 id="OpenJDK源码编译"><a href="#OpenJDK源码编译" class="headerlink" title="OpenJDK源码编译"></a>OpenJDK源码编译</h1><p>相比源代码下载，openjdk的编译倒简单一些，主要是：<br>1)configure</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chmod a+x configure</span><br><span class="line">.&#x2F;configure --with-boot-jdk ~&#x2F;path&#x2F;to&#x2F;jdk</span><br></pre></td></tr></table></figure>
-<p>这个过程的主要问题在于第一步的configure的时候就要依赖旧版本jdk用于后续编译，比如从码云上同步下来的源码编译时需要依赖jdk 15 16 17，而Ubuntu18官方源提供的jdk最新版本只有11，因此只能曲线救国，基于jdk11环境和jdk13源码、jdk15源码逐步编译出新版本的jdk。如果当前已安装的jdk环境是满足源码版本N-1要求的，则只需要./configure即可。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">configure: Potential Boot JDK found at &#x2F;usr&#x2F;lib&#x2F;jvm&#x2F;java-1.11.0-openjdk-amd64 is incorrect JDK version (openjdk version &quot;11.0.9.1&quot; 2020-11-04 OpenJDK Runtime Environment (build 11.0.9.1+1-Ubuntu-0ubuntu1.18.04) OpenJDK 64-Bit Server VM (build 11.0.9.1+1-Ubuntu-0ubuntu1.18.04, mixed mode, sharing)); ignoring</span><br><span class="line">configure: (Your Boot JDK version must be one of: 15 16 17)</span><br><span class="line">configure: Could not find a valid Boot JDK. OpenJDK distributions are available at http:&#x2F;&#x2F;jdk.java.net&#x2F;.</span><br><span class="line">configure: This might be fixed by explicitly setting --with-boot-jdk</span><br><span class="line">configure: error: Cannot continue</span><br></pre></td></tr></table></figure>
-<p>以jdk12为例，基于jdk11环境进行configure和make之后，javac等二进制文件在build/linux-x86_64-server-release/jdk/bin目录；<br><img src="/2021/01/02/How-to-start-Openjdk/dir.png" alt="avatar"></p>
+<h1 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">输入一棵二叉树的根节点，求该树的深度。从根节点到叶节点依次经过的节点（含根、叶节点）形成树的一条路径，最长路径的长度为树的深度。</span><br><span class="line"></span><br><span class="line">例如：</span><br><span class="line"></span><br><span class="line">给定二叉树 [3,9,20,null,null,15,7]，</span><br><span class="line"></span><br><span class="line">    3</span><br><span class="line">   &#x2F; \</span><br><span class="line">  9  20</span><br><span class="line">    &#x2F;  \</span><br><span class="line">   15   7</span><br><span class="line"></span><br><span class="line">返回它的最大深度 3 。</span><br><span class="line"></span><br><span class="line">来源：力扣（LeetCode）</span><br><span class="line">链接：https:&#x2F;&#x2F;leetcode-cn.com&#x2F;problems&#x2F;er-cha-shu-de-shen-du-lcof</span><br><span class="line">著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。</span><br></pre></td></tr></table></figure>
+<h1 id="题目解析"><a href="#题目解析" class="headerlink" title="题目解析"></a>题目解析</h1><p>获取一棵二叉树的最大深度是典型的dfs场景。假设遍历到深度为n的某个节点，如果当前节点有左子节点，那么去它的左子节点后深度肯定会继续增加，同时在左子节点继续递归遍历，更新深度；如果当前节点为空，说明当前深度优先遍历已经达到叶子节点，则返回上一层，继续遍历父节点的右子节点。<br>在整个遍历过程中，我们优先去查找当前节点的子节点，直至到达叶子节点，因此为深度优先搜索。</p>
+<h1 id="参考代码"><a href="#参考代码" class="headerlink" title="参考代码"></a>参考代码</h1><p>此处给出递归的dfs解法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">public class MaxDepth &#123;</span><br><span class="line">    int ans &#x3D; 0;</span><br><span class="line">    public int maxDepth(TreeNode root) &#123;</span><br><span class="line">        dfs(root, 0); &#x2F;&#x2F; 从当前根节点开始遍历</span><br><span class="line">        return ans;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    private void dfs(TreeNode node, int currDepth) &#123;</span><br><span class="line">        if (node !&#x3D; null) &#123; &#x2F;&#x2F; 如果当前节点不为空，则更新最大深度，并继续对当前节点的子节点进行遍历；如果为空，说明当前已到达叶子节点，不必继续进行dfs</span><br><span class="line">            currDepth++;</span><br><span class="line">            ans &#x3D; Math.max(ans, currDepth);</span><br><span class="line">            dfs(node.left, currDepth); &#x2F;&#x2F; 递归遍历左子节点，直至叶子节点</span><br><span class="line">            dfs(node.right, currDepth);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    class TreeNode &#123; &#x2F;&#x2F; 常见的二叉树的一个节点由val和左右子节点构成</span><br><span class="line">        int val;</span><br><span class="line">        TreeNode left, right;</span><br><span class="line">        TreeNode(int x) &#123;</span><br><span class="line">            val &#x3D; x;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="复杂度分析"><a href="#复杂度分析" class="headerlink" title="复杂度分析"></a>复杂度分析</h1><p>时间复杂度：需要遍历所有的节点，复杂度O(n)<br>空间复杂度：需要额外常数空间进行记录，但是递归调用栈空间复杂度为O(n)</p>
 
       
     </div>
@@ -369,7 +355,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/JVM/" rel="tag"># JVM</a>
+            <a href="/tags/Algorithm/" rel="tag"># Algorithm</a>
           
         </div>
       
@@ -382,15 +368,15 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/2021/02/21/JVM-java-byte-code/" rel="next" title="【JVM】java字节码">
+                <i class="fa fa-chevron-left"></i> 【JVM】java字节码
+              </a>
+            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2021/01/10/Start-of-Android-zygote-1/" rel="prev" title="【AOSP】zygote和应用的启动（一）--zygote进程启动">
-                【AOSP】zygote和应用的启动（一）--zygote进程启动 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -520,7 +506,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#OpenJDK%E6%BA%90%E7%A0%81%E4%B8%8B%E8%BD%BD"><span class="nav-number">1.</span> <span class="nav-text">OpenJDK源码下载</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%BB%8E%E5%AE%98%E7%BD%91%E4%B8%8B%E8%BD%BDzip%E5%8C%85%E5%88%B0%E6%9C%AC%E5%9C%B0"><span class="nav-number">1.0.1.</span> <span class="nav-text">1 从官网下载zip包到本地</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%BD%BF%E7%94%A8mercurial%E7%AE%A1%E7%90%86%E5%B7%A5%E5%85%B7%E4%B8%8B%E8%BD%BD"><span class="nav-number">1.0.2.</span> <span class="nav-text">2 使用mercurial管理工具下载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E4%BD%BF%E7%94%A8git%E5%B7%A5%E5%85%B7%E8%BF%9B%E8%A1%8C%E4%B8%8B%E8%BD%BD"><span class="nav-number">1.0.3.</span> <span class="nav-text">3 使用git工具进行下载</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#OpenJDK%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91"><span class="nav-number">2.</span> <span class="nav-text">OpenJDK源码编译</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E6%8F%8F%E8%BF%B0"><span class="nav-number">2.</span> <span class="nav-text">题目描述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E8%A7%A3%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">题目解析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E4%BB%A3%E7%A0%81"><span class="nav-number">4.</span> <span class="nav-text">参考代码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%8D%E6%9D%82%E5%BA%A6%E5%88%86%E6%9E%90"><span class="nav-number">5.</span> <span class="nav-text">复杂度分析</span></a></li></ol></div>
             
 
           </div>
