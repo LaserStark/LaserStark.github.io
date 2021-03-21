@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Algorithm," />
+  <meta name="keywords" content="C++," />
 
 
 
@@ -79,17 +79,17 @@
 
 
 
-<meta name="description" content="前言贪心算法的思想比较简单：为了全局最优，我们在每一步的选择都是当前所能达到的最优值。一般贪心的复杂度较低，但是适用场景也比局限。">
+<meta name="description" content="前言前面我们介绍了java和c++类相关的一些异同点，本篇继续介绍c++的namespace以及虚方法相关的一些特点。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="【算法】贪心算法">
-<meta property="og:url" content="http://example.com/2021/02/16/Algorithm-Greedy/index.html">
+<meta property="og:title" content="【C++】从java到入门C++（三）">
+<meta property="og:url" content="http://example.com/2021/03/21/From-java-to-c-3/index.html">
 <meta property="og:site_name" content="Woods的个人博客">
-<meta property="og:description" content="前言贪心算法的思想比较简单：为了全局最优，我们在每一步的选择都是当前所能达到的最优值。一般贪心的复杂度较低，但是适用场景也比局限。">
+<meta property="og:description" content="前言前面我们介绍了java和c++类相关的一些异同点，本篇继续介绍c++的namespace以及虚方法相关的一些特点。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2021-02-16T07:27:03.000Z">
-<meta property="article:modified_time" content="2021-02-17T03:05:00.883Z">
+<meta property="article:published_time" content="2021-03-21T07:54:19.000Z">
+<meta property="article:modified_time" content="2021-03-21T09:50:17.514Z">
 <meta property="article:author" content="Woods Arrow">
-<meta property="article:tag" content="Algorithm">
+<meta property="article:tag" content="C++">
 <meta name="twitter:card" content="summary">
 
 
@@ -120,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://example.com/2021/02/16/Algorithm-Greedy/"/>
+  <link rel="canonical" href="http://example.com/2021/03/21/From-java-to-c-3/"/>
 
 
 
 
 
-  <title>【算法】贪心算法 | Woods的个人博客</title>
+  <title>【C++】从java到入门C++（三） | Woods的个人博客</title>
   
 
 
@@ -253,7 +253,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/16/Algorithm-Greedy/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/03/21/From-java-to-c-3/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -270,7 +270,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">【算法】贪心算法</h1>
+          <h1 class="post-title" itemprop="name headline">【C++】从java到入门C++（三）</h1>
         
 
         <div class="post-meta">
@@ -282,8 +282,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-02-16T15:27:03+08:00">
-                2021-02-16
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-03-21T15:54:19+08:00">
+                2021-03-21
               </time>
             
 
@@ -301,8 +301,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2021/02/16/Algorithm-Greedy/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2021/02/16/Algorithm-Greedy/" itemprop="commentCount"></span>
+                <a href="/2021/03/21/From-java-to-c-3/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2021/03/21/From-java-to-c-3/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -330,19 +330,19 @@
       
 
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>贪心算法的思想比较简单：为了全局最优，我们在每一步的选择都是当前所能达到的最优值。一般贪心的复杂度较低，但是适用场景也比局限。</p>
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>前面我们介绍了java和c++类相关的一些异同点，本篇继续介绍c++的namespace以及虚方法相关的一些特点。</p>
 <a id="more"></a>
 
-<h1 id="题目描述"><a href="#题目描述" class="headerlink" title="题目描述"></a>题目描述</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">给定长度为 2n 的整数数组 nums ，你的任务是将这些数分成 n 对, 例如 (a1, b1), (a2, b2), ..., (an, bn) ，使得从 1 到 n 的 min(ai, bi) 总和最大。</span><br><span class="line"></span><br><span class="line">返回该 最大总和 。</span><br><span class="line"></span><br><span class="line">示例 1：</span><br><span class="line"></span><br><span class="line">输入：nums &#x3D; [1,4,3,2]</span><br><span class="line">输出：4</span><br><span class="line">解释：所有可能的分法（忽略元素顺序）为：</span><br><span class="line">1. (1, 4), (2, 3) -&gt; min(1, 4) + min(2, 3) &#x3D; 1 + 2 &#x3D; 3</span><br><span class="line">2. (1, 3), (2, 4) -&gt; min(1, 3) + min(2, 4) &#x3D; 1 + 2 &#x3D; 3</span><br><span class="line">3. (1, 2), (3, 4) -&gt; min(1, 2) + min(3, 4) &#x3D; 1 + 3 &#x3D; 4</span><br><span class="line">所以最大总和为 4</span><br><span class="line"></span><br><span class="line">来源：力扣（LeetCode）</span><br><span class="line">链接：https:&#x2F;&#x2F;leetcode-cn.com&#x2F;problems&#x2F;array-partition-i</span><br><span class="line">著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。</span><br></pre></td></tr></table></figure>
-<h1 id="思路分析"><a href="#思路分析" class="headerlink" title="思路分析"></a>思路分析</h1><p>首先根据题分析，为了达到分组之后的min(ai, bi)总和最大，那么每一组都要牺牲一个较大值；为了使牺牲的较大值最小，那么我们先对整个数组进行排序，然后按顺序取分组，这样最终求和的时候，每组为了求和最大，牺牲的都是当前最小的。</p>
-<p>反证法证明：<br>当前有已经排序好的数组：a1, a2, … ai, aj, …<br>其中a1 &lt; a2 &lt; ai &lt; aj</p>
-<p>根据前面的分析，我们认为当前排序进行组合能够使总和最大，即(a1, a2) … (ai, aj) …<br>min(a1, a2) = a1<br>min(ai, aj) = ai</p>
-<p>假设有另外一种组合方式，在其他元素不变动的情况下交换a2和ai (a1, ai) … (a2, aj) …</p>
-<p>则当前的组合<br>min(a1, ai) = a1<br>min(a2, aj) = a2</p>
-<p>根据排序结果可得：<br>a1 + ai &gt; a1 + a2</p>
-<p>即调整顺序后的分组求和后小于直接按排序进行分组求和结果，得证。</p>
-<h1 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">class Solution &#123;</span><br><span class="line">    public int arrayPairSum(int[] nums) &#123;</span><br><span class="line">        int len &#x3D; nums.length;</span><br><span class="line">        int ans &#x3D; 0;</span><br><span class="line">        Arrays.sort(nums);</span><br><span class="line">        for (int i &#x3D; 0; i &lt; len; i +&#x3D; 2) &#123;</span><br><span class="line">            ans +&#x3D; nums[i];</span><br><span class="line">        &#125;</span><br><span class="line">        return ans;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="复杂度分析"><a href="#复杂度分析" class="headerlink" title="复杂度分析"></a>复杂度分析</h1><p>时间复杂度：数组排序复杂度为nlogn，贪心遍历求和为n，总时间复杂度为O(nlogn)<br>空间复杂度：对数组进行原地排序，排序后遍历仅需要额外常量空间记录，总空间复杂度为O(1)</p>
+<h1 id="package和namespace"><a href="#package和namespace" class="headerlink" title="package和namespace"></a>package和namespace</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Base.java</span><br><span class="line"></span><br><span class="line">package woods.test;</span><br><span class="line"></span><br><span class="line">import java.lang.System;</span><br><span class="line"></span><br><span class="line">public class Base &#123;</span><br><span class="line">    public int val;</span><br><span class="line">    public Base(int x) &#123;</span><br><span class="line">        val &#x3D; x;</span><br><span class="line">        System.out.println(&quot;Val &#x3D; &quot; + val);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">base.cpp</span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line">using namespace std;</span><br><span class="line"></span><br><span class="line">class Base &#123;</span><br><span class="line">public:</span><br><span class="line">    int val;</span><br><span class="line">    Base(int x &#x3D; 0) : val(x) &#123;</span><br><span class="line">        cout &lt;&lt; &quot;Val &#x3D; &quot; &lt;&lt; val &lt;&lt; endl;</span><br><span class="line">    &#125;</span><br><span class="line">    virtual Base() &#x3D; default;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在开发过程中经常会遇到类名冲突的场景，java的包名和c++的namespace都能解决这一问题，下面重点介绍c++的namespace。</p>
+<p>如上面case所示，由于c++中标准输出流cout的namespace为std，为了能够在当前代码中使用该方法，直接在开始的地方声明了<code>using namespace std;</code>，也就是下面所有都是std的namespace，当然这种方式比较暴力，除此之外还有两种方式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 1. 用namespace+类的方式具体声明要使用的类</span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line"></span><br><span class="line">using std::cout;</span><br><span class="line">using std::endl;</span><br><span class="line"></span><br><span class="line">class Base &#123;</span><br><span class="line">public:</span><br><span class="line">    int val;</span><br><span class="line">    Base(int x &#x3D; 0) : val(x) &#123;</span><br><span class="line">        cout &lt;&lt; &quot;Val &#x3D; &quot; &lt;&lt; val &lt;&lt; endl;</span><br><span class="line">    &#125;</span><br><span class="line">    virtual Base() &#x3D; default;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; 2. 当前代码块namespace声明为相同的std</span><br><span class="line">#include &lt;iostream&gt;</span><br><span class="line">namespace std &#123;</span><br><span class="line">class Base &#123;</span><br><span class="line">public:</span><br><span class="line">    int val;</span><br><span class="line">    Base(int x &#x3D; 0) : val(x) &#123;</span><br><span class="line">        cout &lt;&lt; &quot;Val &#x3D; &quot; &lt;&lt; val &lt;&lt; endl;</span><br><span class="line">    &#125;</span><br><span class="line">    virtual Base() &#x3D; default;</span><br><span class="line">&#125;</span><br><span class="line">&#125; &#x2F;&#x2F; namespace std</span><br></pre></td></tr></table></figure>
+<h1 id="虚方法和static方法"><a href="#虚方法和static方法" class="headerlink" title="虚方法和static方法"></a>虚方法和static方法</h1><p>在java中，方法分为static和virtual方法两种，一种是类的静态方法，后者是子类可以override的虚方法，调用时根据实例的实际类型进行确定。<br>在c++中，除了static方法与java中调用方式基本相同外，实例方法还根据是否有<code>virtual</code>关键字修饰分为虚方法和非虚实例方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">using namespace std;</span><br><span class="line"></span><br><span class="line">class Base &#123;</span><br><span class="line">public:</span><br><span class="line">    virtual void Print() &#123;</span><br><span class="line">        cout &lt;&lt; &quot;Base.&quot; &lt;&lt; endl;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    string ToString() &#123;</span><br><span class="line">        return &quot;Base.&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">class Son :  public Base &#123;</span><br><span class="line">public:</span><br><span class="line">    void Print() override &#123;</span><br><span class="line">        cout &lt;&lt; &quot;Son.&quot; &lt;&lt;endl;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    string ToString() &#123;</span><br><span class="line">        return &quot;Son.&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main() &#123;</span><br><span class="line">    Base* base &#x3D; new Base();</span><br><span class="line">    Base* son &#x3D; new Son();</span><br><span class="line">    base-&gt;Print();</span><br><span class="line">    son-&gt;Print();</span><br><span class="line"></span><br><span class="line">    cout &lt;&lt; base-&gt;ToString() &lt;&lt; endl;</span><br><span class="line">    cout &lt;&lt; son-&gt;ToSTring() &lt;&lt; endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在上面的父类中，我们定义了一个虚方法Print和一个非虚方法ToString，并且子类中也进行了相同的定义。<br>在main方法中，我们分别构造了父类和子类的实例，但是均声明为Base类型，在调用Print方法的时候打印分别为<code>Base.</code>和<code>Son.</code>，说明该虚方法会根据对象实例的具体类型调用对应的方法，而调用ToString打印的内容均为<code>Base.</code>，说明该没有被<code>virtual</code>关键字修饰的方法在调用时只关注当前对象的声明类型。</p>
+<p>c++中这样设计的原因在于虚方法调用比非虚方法调用需要更多的内存和指令，前者需要根据vtable首地址+偏移量查询到最终要调用的方法的地址，而后者在编译时就可以直接确定，因此开发者可以根据自身需求进行选择。</p>
 
       
     </div>
@@ -360,7 +360,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Algorithm/" rel="tag"># Algorithm</a>
+            <a href="/tags/C/" rel="tag"># C++</a>
           
         </div>
       
@@ -373,8 +373,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/02/12/GC-fundamentals/" rel="next" title="【JVM】GC基础知识">
-                <i class="fa fa-chevron-left"></i> 【JVM】GC基础知识
+              <a href="/2021/03/21/From-java-to-c-2/" rel="next" title="【C++】从java到入门C++（二）">
+                <i class="fa fa-chevron-left"></i> 【C++】从java到入门C++（二）
               </a>
             
           </div>
@@ -382,10 +382,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2021/02/21/JVM-java-byte-code/" rel="prev" title="【JVM】java字节码">
-                【JVM】java字节码 <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -515,7 +511,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A2%98%E7%9B%AE%E6%8F%8F%E8%BF%B0"><span class="nav-number">2.</span> <span class="nav-text">题目描述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%9D%E8%B7%AF%E5%88%86%E6%9E%90"><span class="nav-number">3.</span> <span class="nav-text">思路分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81"><span class="nav-number">4.</span> <span class="nav-text">示例代码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%8D%E6%9D%82%E5%BA%A6%E5%88%86%E6%9E%90"><span class="nav-number">5.</span> <span class="nav-text">复杂度分析</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#package%E5%92%8Cnamespace"><span class="nav-number">2.</span> <span class="nav-text">package和namespace</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%99%9A%E6%96%B9%E6%B3%95%E5%92%8Cstatic%E6%96%B9%E6%B3%95"><span class="nav-number">3.</span> <span class="nav-text">虚方法和static方法</span></a></li></ol></div>
             
 
           </div>
