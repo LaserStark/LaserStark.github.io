@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="Algorithm," />
+  <meta name="keywords" content="Hexo, NexT" />
 
 
 
@@ -79,17 +79,14 @@
 
 
 
-<meta name="description" content="前言动态规划（Dynamic Programming）让大部分人又爱又恨，爱它是因为适用场景下可以用巧妙的思路、简洁的代码、较低的复杂度解决问题，而恨在动态规划场景的子问题构造需要一些灵感。本文尽量以通俗的语言介绍这一算法的思路。">
-<meta property="og:type" content="article">
-<meta property="og:title" content="【算法】动态规划">
-<meta property="og:url" content="http://example.com/2021/03/14/Algorithm-dp/index.html">
+<meta name="description" content="Welcome to join the conference">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Woods的个人博客">
+<meta property="og:url" content="http://example.com/page/3/index.html">
 <meta property="og:site_name" content="Woods的个人博客">
-<meta property="og:description" content="前言动态规划（Dynamic Programming）让大部分人又爱又恨，爱它是因为适用场景下可以用巧妙的思路、简洁的代码、较低的复杂度解决问题，而恨在动态规划场景的子问题构造需要一些灵感。本文尽量以通俗的语言介绍这一算法的思路。">
+<meta property="og:description" content="Welcome to join the conference">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2021-03-14T14:09:00.000Z">
-<meta property="article:modified_time" content="2021-03-21T03:50:16.591Z">
 <meta property="article:author" content="Woods Arrow">
-<meta property="article:tag" content="Algorithm">
 <meta name="twitter:card" content="summary">
 
 
@@ -120,13 +117,13 @@
 
 
 
-  <link rel="canonical" href="http://example.com/2021/03/14/Algorithm-dp/"/>
+  <link rel="canonical" href="http://example.com/page/3/"/>
 
 
 
 
 
-  <title>【算法】动态规划 | Woods的个人博客</title>
+  <title>Woods的个人博客</title>
   
 
 
@@ -145,7 +142,8 @@
     
   
 
-  <div class="container sidebar-position-left page-post-detail">
+  <div class="container sidebar-position-left 
+  page-home">
     <div class="headband"></div>
 
     <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
@@ -238,9 +236,9 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
-
-  <div id="posts" class="posts-expand">
+  <section id="posts" class="posts-expand">
     
+      
 
   
 
@@ -253,7 +251,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/03/14/Algorithm-dp/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/17/Start-of-Android-zygote-2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -270,7 +268,9 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">【算法】动态规划</h1>
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2021/01/17/Start-of-Android-zygote-2/" itemprop="url">【AOSP】zygote和应用的启动（二）--ZygoteInit的初始化</a></h1>
         
 
         <div class="post-meta">
@@ -282,8 +282,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-03-14T22:09:00+08:00">
-                2021-03-14
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-01-17T17:38:29+08:00">
+                2021-01-17
               </time>
             
 
@@ -301,8 +301,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2021/03/14/Algorithm-dp/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2021/03/14/Algorithm-dp/" itemprop="commentCount"></span>
+                <a href="/2021/01/17/Start-of-Android-zygote-2/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2021/01/17/Start-of-Android-zygote-2/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -330,18 +330,16 @@
       
 
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>动态规划（Dynamic Programming）让大部分人又爱又恨，爱它是因为适用场景下可以用巧妙的思路、简洁的代码、较低的复杂度解决问题，而恨在动态规划场景的子问题构造需要一些灵感。本文尽量以通俗的语言介绍这一算法的思路。</p>
-<a id="more"></a>
-
-<h1 id="动态规划思路"><a href="#动态规划思路" class="headerlink" title="动态规划思路"></a>动态规划思路</h1><p>假设我们当前有size为n的问题f，最终目标是计算f(n)的结果，但是我们发现这个最终的问题f(n)和它的一个子问题f(n-1)是有依赖关系的。即假设我们已知size为n-1的问题f的结果，那么我们可以根据当前f(n-1)的状态+最后一个问题的选择，推导出最终f(n)的结果。这样，一个问题就可以分解为size更小的子问题，而子问题也可以进一步递归分解，最终实现问题的解决。</p>
-<p>由于在求解子问题的过程中，常常会遇到重复的子问题，重复求解这些问题会增加不必要的计算，因此记忆化存储是动态规划一种常用的优化方式。</p>
-<h1 id="例题描述"><a href="#例题描述" class="headerlink" title="例题描述"></a>例题描述</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">剑指 Offer 47. 礼物的最大价值</span><br><span class="line"></span><br><span class="line">在一个 m*n 的棋盘的每一格都放有一个礼物，每个礼物都有一定的价值（价值大于 0）。你可以从棋盘的左上角开始拿格子里的礼物，并每次向右或者向下移动一格、直到到达棋盘的右下角。给定一个棋盘及其上面的礼物的价值，请计算你最多能拿到多少价值的礼物？</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line"></span><br><span class="line">示例 1:</span><br><span class="line"></span><br><span class="line">输入: </span><br><span class="line">[</span><br><span class="line">  [1,3,1],</span><br><span class="line">  [1,5,1],</span><br><span class="line">  [4,2,1]</span><br><span class="line">]</span><br><span class="line">输出: 12</span><br><span class="line">解释: 路径 1→3→5→2→1 可以拿到最多价值的礼物</span><br></pre></td></tr></table></figure>
-<h1 id="例题分析"><a href="#例题分析" class="headerlink" title="例题分析"></a>例题分析</h1><p>从题目可以看出，我们的最终目标是获得(m, n)点礼物最大价值，尝试将该问题分解为子问题的时候发现：如果已知上一步的最大值，则只需要在上一步的基础上加当前位置的价值；而上一步有可能来自两个地方，即左边（点 m, n - 1)或者上边(点 m - 1, n)，取两者中的最大值即可保证最终结果的最大值。</p>
-<p>因此该问题可以分解为这样的子问题：<br>如果f(m, n - 1) &gt; f(m - 1, n)<br>f(m, n) = f(m, n - 1) + grid[m][n]<br>否则<br>f(m, n) = f(m - 1, n) + grid[m][n]</p>
-<p>同时，由于在计算f(m, n - 1)和f(m - 1,n)的时候同时会到f(m - 1, n - 1)，因此记忆化存储f(m - 1, n - 1)避免重复计算。</p>
-<h1 id="参考代码"><a href="#参考代码" class="headerlink" title="参考代码"></a>参考代码</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">class Solutuion &#123;</span><br><span class="line">    public int maxValue(int[][] grid) &#123;</span><br><span class="line">        int row &#x3D; grid.length;</span><br><span class="line">        if (row &#x3D;&#x3D; 0) &#123;</span><br><span class="line">            return 0;</span><br><span class="line">        &#125;</span><br><span class="line">        int col &#x3D; grid[0].length;</span><br><span class="line">        int[][] dp &#x3D; new int[row + 1][col + 1];</span><br><span class="line">        for (int i &#x3D; 0; i &lt; row; i++) &#123;</span><br><span class="line">            for (int j &#x3D; 0; j &lt; col; j++) &#123;</span><br><span class="line">                dp[i + 1][j + 1] &#x3D; Math.max(dp[i][j + 1], dp[i + 1][j]) + grid[i][j]; &#x2F;&#x2F; 上一步可能来自左边或者上边，取两者的最大值+当前节点的值</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        return dp[row][col];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h1 id="复杂度分析"><a href="#复杂度分析" class="headerlink" title="复杂度分析"></a>复杂度分析</h1><p>空间复杂度：需要m*n矩阵保存当前状态的值，空间复杂度为O(mn)<br>时间复杂度：需要遍历计算每个节点的礼物最大值，时间复杂度为O(mn)</p>
-
+        
+          <h1 id="背景回顾和本篇摘要"><a href="#背景回顾和本篇摘要" class="headerlink" title="背景回顾和本篇摘要"></a>背景回顾和本篇摘要</h1><p>上篇我们介绍了zygote进程是如何从app_process启动的，本篇主要介绍虚拟机创建后进入java层ZygoteInit之后进行参数解析、开启socket以及system_server的启动相关的处理。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2021/01/17/Start-of-Android-zygote-2/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
       
     </div>
     
@@ -356,40 +354,14 @@
 
     <footer class="post-footer">
       
-        <div class="post-tags">
-          
-            <a href="/tags/Algorithm/" rel="tag"># Algorithm</a>
-          
-        </div>
+
+      
+
       
 
       
       
-      
-
-      
-        <div class="post-nav">
-          <div class="post-nav-next post-nav-item">
-            
-              <a href="/2021/03/07/Algorithm-Union-tree/" rel="next" title="【算法】并查集">
-                <i class="fa fa-chevron-left"></i> 【算法】并查集
-              </a>
-            
-          </div>
-
-          <span class="post-nav-divider"></span>
-
-          <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2021/03/21/From-java-to-c-1/" rel="prev" title="【C++】从java到入门c++（一）">
-                【C++】从java到入门c++（一） <i class="fa fa-chevron-right"></i>
-              </a>
-            
-          </div>
-        </div>
-      
-
-      
+        <div class="post-eof"></div>
       
     </footer>
   </div>
@@ -399,11 +371,283 @@
   </article>
 
 
+    
+      
 
-    <div class="post-spread">
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/10/Start-of-Android-zygote-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/woods.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Woods的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2021/01/10/Start-of-Android-zygote-1/" itemprop="url">【AOSP】zygote和应用的启动（一）--zygote进程启动</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-01-10T18:51:22+08:00">
+                2021-01-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/01/10/Start-of-Android-zygote-1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2021/01/10/Start-of-Android-zygote-1/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h1 id="写在前面"><a href="#写在前面" class="headerlink" title="写在前面"></a>写在前面</h1><p>最近由于业务需要接触了较多的Android应用、ART虚拟机、framework相关的知识，打算梳理一个简单的AOSP系列出来介绍一些应用相关的知识，本文作为系列的第一篇，先从zygote讲起。AOSP R版本已经正式发布，本文也主要以R版本为基础进行介绍，主要涉及的git仓为framework/base和system/core，由于AOSP工程较大存在镜像同步困难等问题，可以通过在线的方式阅读源码：</p>
+<p><a target="_blank" rel="noopener" href="http://aospxref.com/android-11.0.0_r21/">http://aospxref.com/android-11.0.0_r21/</a> 最新已同步至R版本<br><a target="_blank" rel="noopener" href="https://github.com/aosp-mirror">https://github.com/aosp-mirror</a> 单仓的镜像<br><a target="_blank" rel="noopener" href="http://androidxref.com/">http://androidxref.com/</a> 版本较老，最新版本为P版本</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2021/01/10/Start-of-Android-zygote-1/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
       
     </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
   </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/01/02/How-to-start-Openjdk/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/woods.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Woods的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2021/01/02/How-to-start-Openjdk/" itemprop="url">【OJ】OpenJDK源码下载与编译</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-01-02T13:45:41+08:00">
+                2021-01-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/01/02/How-to-start-Openjdk/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2021/01/02/How-to-start-Openjdk/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>OpenJDK是学习java虚拟机的一手资料，本文主要记录一下在OpenJDK源码的获取下载和编译中遇到的问题。</p>
+          <!--noindex-->
+          <div class="post-button text-center">
+            <a class="btn" href="/2021/01/02/How-to-start-Openjdk/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+          <!--/noindex-->
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+  </section>
+
+  
+  <nav class="pagination">
+    <a class="extend prev" rel="prev" href="/page/2/">&lt;i class&#x3D;&quot;fa fa-angle-left&quot;&gt;&lt;&#x2F;i&gt;</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><span class="page-number current">3</span>
+  </nav>
+
 
 
           </div>
@@ -411,13 +655,6 @@
 
 
           
-
-  
-    <div class="comments" id="comments">
-    </div>
-  
-
-
 
         </div>
         
@@ -438,17 +675,8 @@
       
 
       
-        <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
-            Table of Contents
-          </li>
-          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
-            Overview
-          </li>
-        </ul>
-      
 
-      <section class="site-overview-wrap sidebar-panel">
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
             
@@ -503,22 +731,6 @@
         </div>
       </section>
 
-      
-      <!--noindex-->
-        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
-          <div class="post-toc">
-
-            
-              
-            
-
-            
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E8%A7%84%E5%88%92%E6%80%9D%E8%B7%AF"><span class="nav-number">2.</span> <span class="nav-text">动态规划思路</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BE%8B%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="nav-number">3.</span> <span class="nav-text">例题描述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BE%8B%E9%A2%98%E5%88%86%E6%9E%90"><span class="nav-number">4.</span> <span class="nav-text">例题分析</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E4%BB%A3%E7%A0%81"><span class="nav-number">5.</span> <span class="nav-text">参考代码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A4%8D%E6%9D%82%E5%BA%A6%E5%88%86%E6%9E%90"><span class="nav-number">6.</span> <span class="nav-text">复杂度分析</span></a></li></ol></div>
-            
-
-          </div>
-        </section>
-      <!--/noindex-->
       
 
       
@@ -659,10 +871,6 @@
 
 
   
-  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
-<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
-
-
 
   
 
