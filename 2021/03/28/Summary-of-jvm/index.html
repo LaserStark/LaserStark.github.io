@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="JVM," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="前言介绍java虚拟机相关的书很多，比如周志明老师《深入理解java虚拟机》等，本文从一个虚拟机初级开发的角度，以HotSpot虚拟机为例，理一理虚拟机相关的基础概念和知识，有错误的地方请批评指正。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="【OpenJDK】Java虚拟机概述">
+<meta property="og:url" content="http://example.com/2021/03/28/Summary-of-jvm/index.html">
+<meta property="og:site_name" content="Woods的个人博客">
+<meta property="og:description" content="前言介绍java虚拟机相关的书很多，比如周志明老师《深入理解java虚拟机》等，本文从一个虚拟机初级开发的角度，以HotSpot虚拟机为例，理一理虚拟机相关的基础概念和知识，有错误的地方请批评指正。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-03-28T04:07:49.000Z">
+<meta property="article:modified_time" content="2021-03-28T13:49:55.252Z">
+<meta property="article:author" content="Woods Arrow">
+<meta property="article:tag" content="JVM">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Gemini',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://example.com/2021/03/28/Summary-of-jvm/"/>
+
+
+
+
+
+  <title>【OpenJDK】Java虚拟机概述 | Woods的个人博客</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.3.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Woods的个人博客</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-guestbook">
+          <a href="/guestbook" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            guestbook
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/03/28/Summary-of-jvm/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/woods.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Woods的个人博客">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">【OpenJDK】Java虚拟机概述</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-03-28T12:07:49+08:00">
+                2021-03-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/03/28/Summary-of-jvm/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2021/03/28/Summary-of-jvm/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>介绍java虚拟机相关的书很多，比如周志明老师《深入理解java虚拟机》等，本文从一个虚拟机初级开发的角度，以HotSpot虚拟机为例，理一理虚拟机相关的基础概念和知识，有错误的地方请批评指正。</p>
+<a id="more"></a>
+
+<h1 id="源码编译"><a href="#源码编译" class="headerlink" title="源码编译"></a>源码编译</h1><p>javac是我们接触java语言的第一步，它将java源码编译为class文件，文件包含魔数、版本、常量表、类信息以及方法中基于栈的平台无关字节码，详细在<a target="_blank" rel="noopener" href="https://woods-arrows.gitee.io/2021/02/21/JVM-java-byte-code/">【JVM】java字节码</a>一文中有详细介绍。</p>
+<h1 id="类的加载、链接、初始化"><a href="#类的加载、链接、初始化" class="headerlink" title="类的加载、链接、初始化"></a>类的加载、链接、初始化</h1><p>类是开发者用于面向对象开发的基本组织单位，同时也是虚拟机执行的基础。一个类从源码被编译为class文件到真正被执行需要经历加载、链接、初始化等几个步骤。</p>
+<h2 id="加载"><a href="#加载" class="headerlink" title="加载"></a>加载</h2><p>关于类的加载绕不开双亲委派机制，这个翻译过来的名字让很多刚接触的人感到疑惑，但核心思想比较简单。Hotspot中有三个层次的类加载器BootStrapClassLoader、ExtClassLoader和AppClassLoader，根据其命名可以看出其层次依次降低，前者是后者的父加载器。当虚拟机解释执行过程中遇到一个类的时候，核心思想为：</p>
+<ol>
+<li>先去当前classloader已经加载的类里面去查找，如果没找到则递归去上一级的已加载类中查找；</li>
+<li>如果在所有classloader的已加载类中均未找到，则从当前（一定是BootStrapClassLoader）classloader开始尝试加载，如果加载失败则委托给下一层次classloader加载；</li>
+<li>如果最终在AppClassLoader中也没有加载到，则跑出ClassNotFoundException;</li>
+</ol>
+<p>最终的效果是：公共的一些类会被加载到BootStrapClassLoader中并且只保留一份，各个应用特需的类只加载至各自的classloader中；</p>
+<p>类在加载进虚拟机后，会创建类对应的虚拟机表示以及java.lang.Class对应的实例。</p>
+<h2 id="链接"><a href="#链接" class="headerlink" title="链接"></a>链接</h2><ol>
+<li>虚拟机会为静态变量分配对应内存，并将初始化默认值；</li>
+<li>将类中的符号引用找到对应的直接引用；</li>
+</ol>
+<h2 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h2><p>初始化一般是在实际使用该类的时候触发的，比如构造实例对象、使用类的静态方法和静态成员变量等；初始化的内容主要包括：</p>
+<ol>
+<li>执行clinit相关的逻辑，包括静态成员变量赋值、static代码块，如果当前类有父类还会先触发父类的initialize；</li>
+<li>vtable itable的构建；</li>
+</ol>
+<h1 id="字节码执行"><a href="#字节码执行" class="headerlink" title="字节码执行"></a>字节码执行</h1><p>解释执行、jit和aot是字节码执行的三种方式，可以简单认为这三种执行方式效率依次提升，但同时也是各有优缺点。</p>
+<h2 id="解释执行"><a href="#解释执行" class="headerlink" title="解释执行"></a>解释执行</h2><p>Hotspot有两种解释器，c++解释器和汇编解释器。以常见的<code>iadd</code>指令为例，c++解释器会将栈中的两个int操作数出栈，然后相加后的结果再入栈；汇编解释器则会利用机器码的<code>add</code>指令，先将两个操作数mov到对应的寄存器中，相加后再取回放入栈中；</p>
+<h2 id="jit"><a href="#jit" class="headerlink" title="jit"></a>jit</h2><p>JIT的全称为Just In Time，可以理解将java方法即时编译为native机器码，比汇编解释器的字节码级别的native执行效率更高，但是jit编译本身也消耗计算资源。</p>
+<p>jit编译的对象通常为执行次数比较多的热点方法，虚拟机在调用某个方法的同时也会统计执行次数，如果超过一定阈值则会被加入jit编译任务的队列，编译完成后会将native方法入口设置在该method对应的入口，用于下一次进入的时候进行调用。</p>
+<p>还有一种情况是某个方法执行次数很少但是存在一个执行次数很多的循环，这种情况下就需要回边计数，每次回到循环的起始位置就计数加一，变为热点并编译完成后会执行栈上替换OSR(On Stack Replacement)，提高循环的执行效率。</p>
+<p>PGO(Profile Guided Optimization)则是通过预采样的方式统计出方法的热点，然后用于AOT或者jit编译优化。</p>
+<h2 id="AOT"><a href="#AOT" class="headerlink" title="AOT"></a>AOT</h2><p>AOT的全称为Ahead Of Time，相比jit这种执行过程中的编译，aot在程序运行前就全部编译为native代码，这种方式在提高运行效率、减少程序运行时的编译压力的同时，增大了数据占用size，以及可能存在的首次启动开销。</p>
+<h1 id="JNI调用"><a href="#JNI调用" class="headerlink" title="JNI调用"></a>JNI调用</h1><p>JNI全称为Java Native Interface，即java的native接口，将开发者的发挥空间从java层扩展到native层。jni方法的native入口有两种方式与java方法进行关联，一种是主动在虚拟机进行注册，另一种是由虚拟机进行过运行时查找<code>dlsym</code>，两种方式的最终结果都是在native方法的入口处设置指向native方法的指针。</p>
+<h1 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h1><p>和c++语言相比，java语言的一大特色就是开发者无需关注内存管理，而内存管理的核心关注点在于堆内存，一块被使用过、将来不会再被使用的内存称为垃圾，垃圾回收（Garbage Collection, GC）相关的基础算法在<a target="_blank" rel="noopener" href="https://woods-arrows.gitee.io/2021/02/12/GC-fundamentals/">【JVM】GC基础知识</a>中进行了介绍，具体在HotSpot中有Serial、Par、CMS、G1、Shenandoah GC。</p>
+<h2 id="Serial"><a href="#Serial" class="headerlink" title="Serial"></a>Serial</h2><p>年轻代为标记-复制算法，Full GC为标记-整理算法，在标记和复制（整理）阶段均需要STW，并且工作线程为单线程。</p>
+<h2 id="Parallel"><a href="#Parallel" class="headerlink" title="Parallel"></a>Parallel</h2><p>和Serial收集器最大的改进是在标记和收集阶段为多线程并行工作，减少STW时间。</p>
+<h2 id="CMS"><a href="#CMS" class="headerlink" title="CMS"></a>CMS</h2><p>全称为Concurrent Mark Sweep，只需要在标记阶段STW，在清除阶段可以和工作进程并发执行，需要barrier处理浮动垃圾。</p>
+<h2 id="G1"><a href="#G1" class="headerlink" title="G1"></a>G1</h2><p>将新生代和老年代的概念泛化，均以固定size的region为单位进行分配，以垃圾回收的性价比为目标（比如某region比较大但是live对象很少）。</p>
+<h2 id="Shenandoah-GC"><a href="#Shenandoah-GC" class="headerlink" title="Shenandoah GC"></a>Shenandoah GC</h2><p>加一个中间层转发指针，在进行垃圾收集时即使修改进入这个对象的唯一入口点，避免barrier造成的性能损失，但是会降低普通的访问性能。</p>
+<h2 id="Remember-Set"><a href="#Remember-Set" class="headerlink" title="Remember Set"></a>Remember Set</h2><p>用于保存有指向年轻代的老年代区域，用于加速年轻代GC时的标记。</p>
+<h2 id="TLAB"><a href="#TLAB" class="headerlink" title="TLAB"></a>TLAB</h2><p>线程私有的内存分配区，单线程垃圾回收不受其他线程影响。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JVM/" rel="tag"># JVM</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/03/27/From-java-to-c-6/" rel="next" title="【C++】从java到入门C++（六）- 内存泄露和野指针">
+                <i class="fa fa-chevron-left"></i> 【C++】从java到入门C++（六）- 内存泄露和野指针
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/woods.gif"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives">
+              
+                  <span class="site-state-item-count">24</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91"><span class="nav-number">2.</span> <span class="nav-text">源码编译</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B1%BB%E7%9A%84%E5%8A%A0%E8%BD%BD%E3%80%81%E9%93%BE%E6%8E%A5%E3%80%81%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">3.</span> <span class="nav-text">类的加载、链接、初始化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A0%E8%BD%BD"><span class="nav-number">3.1.</span> <span class="nav-text">加载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%93%BE%E6%8E%A5"><span class="nav-number">3.2.</span> <span class="nav-text">链接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">3.3.</span> <span class="nav-text">初始化</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AD%97%E8%8A%82%E7%A0%81%E6%89%A7%E8%A1%8C"><span class="nav-number">4.</span> <span class="nav-text">字节码执行</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E9%87%8A%E6%89%A7%E8%A1%8C"><span class="nav-number">4.1.</span> <span class="nav-text">解释执行</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#jit"><span class="nav-number">4.2.</span> <span class="nav-text">jit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AOT"><span class="nav-number">4.3.</span> <span class="nav-text">AOT</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JNI%E8%B0%83%E7%94%A8"><span class="nav-number">5.</span> <span class="nav-text">JNI调用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-number">6.</span> <span class="nav-text">内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Serial"><span class="nav-number">6.1.</span> <span class="nav-text">Serial</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Parallel"><span class="nav-number">6.2.</span> <span class="nav-text">Parallel</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CMS"><span class="nav-number">6.3.</span> <span class="nav-text">CMS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#G1"><span class="nav-number">6.4.</span> <span class="nav-text">G1</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Shenandoah-GC"><span class="nav-number">6.5.</span> <span class="nav-text">Shenandoah GC</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Remember-Set"><span class="nav-number">6.6.</span> <span class="nav-text">Remember Set</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TLAB"><span class="nav-number">6.7.</span> <span class="nav-text">TLAB</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Woods Arrow</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Gemini</a> v5.1.4</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: 'veJqsd396sc84V1WPuBq6YiX-gzGzoHsz',
+        appKey: 'OgT7F4N06YfKvDa5L7kH88Rx',
+        placeholder: 'Just go go',
+        avatar:'mm',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
