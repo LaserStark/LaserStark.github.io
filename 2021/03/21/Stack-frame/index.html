@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="C++," />
+  <meta name="keywords" content="Fundamentals," />
 
 
 
@@ -79,17 +79,17 @@
 
 
 
-<meta name="description" content="前言刚接触c++的时候，经常能在稳定性相关的问题定位中听到内存泄露和野指针两个关键词，对于使用java这种内存安全语言的开发者来说，这两个词可能都很陌生，但是又是c++开发者不得不面对并且要认真处理的两个问题。">
+<meta name="description" content="前言c是面向过程的编程语言，过程的实现主要依赖于函数；c++ java则是面向对象的编程语言，每个类中也封装有对象对外提供的方法（函数）用于提供相应特性或功能，本质上两者的实现离不开栈帧，本文进行简单的介绍。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="【C++】从java到入门C++（六）- 内存泄露和野指针">
-<meta property="og:url" content="http://example.com/2021/03/26/From-java-to-c-6/index.html">
+<meta property="og:title" content="【计算机基础】栈帧">
+<meta property="og:url" content="http://example.com/2021/03/21/Stack-frame/index.html">
 <meta property="og:site_name" content="Woods的个人博客">
-<meta property="og:description" content="前言刚接触c++的时候，经常能在稳定性相关的问题定位中听到内存泄露和野指针两个关键词，对于使用java这种内存安全语言的开发者来说，这两个词可能都很陌生，但是又是c++开发者不得不面对并且要认真处理的两个问题。">
+<meta property="og:description" content="前言c是面向过程的编程语言，过程的实现主要依赖于函数；c++ java则是面向对象的编程语言，每个类中也封装有对象对外提供的方法（函数）用于提供相应特性或功能，本质上两者的实现离不开栈帧，本文进行简单的介绍。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2021-03-26T12:58:58.000Z">
-<meta property="article:modified_time" content="2021-03-31T13:32:23.279Z">
+<meta property="article:published_time" content="2021-03-21T00:14:52.000Z">
+<meta property="article:modified_time" content="2021-04-04T14:56:53.842Z">
 <meta property="article:author" content="Woods Arrow">
-<meta property="article:tag" content="C++">
+<meta property="article:tag" content="Fundamentals">
 <meta name="twitter:card" content="summary">
 
 
@@ -120,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://example.com/2021/03/26/From-java-to-c-6/"/>
+  <link rel="canonical" href="http://example.com/2021/03/21/Stack-frame/"/>
 
 
 
 
 
-  <title>【C++】从java到入门C++（六）- 内存泄露和野指针 | Woods的个人博客</title>
+  <title>【计算机基础】栈帧 | Woods的个人博客</title>
   
 
 
@@ -253,7 +253,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/03/26/From-java-to-c-6/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/03/21/Stack-frame/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -270,7 +270,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">【C++】从java到入门C++（六）- 内存泄露和野指针</h1>
+          <h1 class="post-title" itemprop="name headline">【计算机基础】栈帧</h1>
         
 
         <div class="post-meta">
@@ -282,8 +282,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-03-26T20:58:58+08:00">
-                2021-03-26
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-03-21T08:14:52+08:00">
+                2021-03-21
               </time>
             
 
@@ -301,8 +301,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2021/03/26/From-java-to-c-6/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2021/03/26/From-java-to-c-6/" itemprop="commentCount"></span>
+                <a href="/2021/03/21/Stack-frame/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2021/03/21/Stack-frame/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -330,21 +330,22 @@
       
 
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>刚接触c++的时候，经常能在稳定性相关的问题定位中听到内存泄露和野指针两个关键词，对于使用java这种内存安全语言的开发者来说，这两个词可能都很陌生，但是又是c++开发者不得不面对并且要认真处理的两个问题。</p>
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>c是面向过程的编程语言，过程的实现主要依赖于函数；c++ java则是面向对象的编程语言，每个类中也封装有对象对外提供的方法（函数）用于提供相应特性或功能，本质上两者的实现离不开栈帧，本文进行简单的介绍。</p>
 <a id="more"></a>
 
-<h1 id="内存泄露"><a href="#内存泄露" class="headerlink" title="内存泄露"></a>内存泄露</h1><p>先看这样一段简单的代码，main函数中定义了两个变量，一个是直接定义并赋值的int型变量val，另一个是通过new关键字构造出来的int型指针，虽然两者值均为3，但两者本质不同。</p>
-<p>第一个变量val占有的是在当前栈上分配的内存，在main函数结束执行之后会被自动释放；</p>
-<p>第二个变量newValPtr指向的是通过new关键字在堆上分配的内存，如果在main函数结束的时候不主动delete，那么对应内存的引用一直会保留，但是实际调用点已经完成了使用并且不会被再次引用，这种情况就是内存泄露。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;iostream&gt;</span><br><span class="line"></span><br><span class="line">using namespace std;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    int val &#x3D; 3;</span><br><span class="line">    int* newValPtr &#x3D; new int(3);</span><br><span class="line">    cout &lt;&lt; &quot;val &#x3D; &quot; &lt;&lt; val &lt;&lt; &quot;, newVal &#x3D; &quot; &lt;&lt; *newValPtr &lt;&lt; endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>修正：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;iostream&gt;</span><br><span class="line"></span><br><span class="line">using namespace std;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    int val &#x3D; 3;</span><br><span class="line">    int* newValPtr &#x3D; new int(3);</span><br><span class="line">    cout &lt;&lt; &quot;val &#x3D; &quot; &lt;&lt; val &lt;&lt; &quot;, newVal &#x3D; &quot; &lt;&lt; *newValPtr &lt;&lt; endl;</span><br><span class="line">    delete newValPtr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>修正版本在main函数结束前主动调用delete关键字对newValPtr指向的内存进行了释放，就不会再造成内存泄露，因此c++开发者一定要注意new和delete的配套使用，避免堆上内存的泄露。</p>
-<h1 id="野指针"><a href="#野指针" class="headerlink" title="野指针"></a>野指针</h1><p>同样地我们先看下面这个例子：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;iostream&gt;</span><br><span class="line"></span><br><span class="line">using namespace std;</span><br><span class="line"></span><br><span class="line">int* foo()</span><br><span class="line">&#123;</span><br><span class="line">    int val &#x3D; 1;</span><br><span class="line">    return &amp;val;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    int* valPtr &#x3D; foo();</span><br><span class="line">    cout &lt;&lt; &quot;val &#x3D; &quot; &lt;&lt; *val &lt;&lt; endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在该case中，函数foo定义了一个变量val，并将val的地址作为指针传回调用者，但是在main函数的调用该函数获取指针后，在使用该指针的时候会发生segment fault。</p>
-<p>原因在于foo中的变量val是在栈上分配的内存，当foo函数结束执行后这块内存便会被释放，而返回给main函数的指向变量val的指针此时是没有意义的，这就是野指针的一种典型场景。</p>
-<h1 id="后话"><a href="#后话" class="headerlink" title="后话"></a>后话</h1><p>在java中，变量的定义和对应内存的销毁都是托管给虚拟机的，基本不会出现内存泄露问题；而且java中没有指针的概念并且对象都是在堆内，因此野指针问题也不存在。从java转向c++的开发者很容易被内存管理相关的问题困扰，但是如果用好这些关键字和语法，内存管理也可以是一种艺术。</p>
+<h1 id="函数调用与栈"><a href="#函数调用与栈" class="headerlink" title="函数调用与栈"></a>函数调用与栈</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">int b(int val)</span><br><span class="line">&#123;</span><br><span class="line">    return ++val;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int a()</span><br><span class="line">&#123;</span><br><span class="line">    return b(1);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    return a();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先看上面这个简单的case，在main函数中调用函数a，而a中有继续调用了b，简单表示为main-&gt;a-&gt;b，最终的执行顺序是b执行完将结果返回给调用点函数a，然后a再将值返回给调用点main，总的传递流程为b-&gt;a-&gt;main，与调用先后顺序刚好相反，即后调用的函数先结束。</p>
+<p>这种逻辑关系很容易联想到先进后出（FILO）的数据结构–栈，因此函数调用就是基于栈的栈帧实现的。</p>
+<h1 id="栈帧"><a href="#栈帧" class="headerlink" title="栈帧"></a>栈帧</h1><p>我们将调用过程抽离出来看，一般调用方称为caller，被调用的函数称为callee，那么这个过程需要做的包括：</p>
+<ol>
+<li>保存caller当前的状态用于从callee结束后恢复继续执行，包括当前寄存器的值、当前地址pc、当前栈帧的起始位置和栈顶指针sp；</li>
+<li>从caller传递参数给callee；</li>
+<li>callee运行需要的临时变量存放空间和调用完成后的返回值；</li>
+</ol>
+<p>首先来看第一个问题，一般会有两种约定分别为caller-save和callee-save，分别表示由caller保存现场后再开始下一个栈帧，和完全托管给callee只要保证从callee返回时能够恢复现场就可以。考虑到callee并不一定会完全覆盖caller使用的所有寄存器，因此callee-save的方式根据实际使用的寄存器确定caller的现场处理和恢复更加灵活。此外，由于下一个栈帧是从当前栈顶sp开始的，pop下一个栈帧后只sp指向的位置就自动恢复，因此保存时也只需要记录caller栈帧的起始地址。</p>
+<p>其次是参数传递，上面的例子中在调用函数b的时候传递了一个int参数，实际在调用过程中，会约定使用若干寄存器用于传递参数，如果传递参数数量超出这个范围，则多出来的参数会放到栈帧中使用内存的方式进行传递。因此一些编码规范要求函数的参数不能超过五个是有对应的底层栈帧构造传参的性能原因。</p>
+<p>最后是callee的栈帧构造和返回值，callee中使用的内存大小是在编译时确定的，因此在开发时如果对使用的空间大小不确定或者较大，则最好使用堆内存进行处理，避免栈空间的浪费和溢出。处理完成的返回值一般约定保存至某个固定寄存器。</p>
+<h1 id="JVM栈帧"><a href="#JVM栈帧" class="headerlink" title="JVM栈帧"></a>JVM栈帧</h1><p>虚拟机栈帧在思想上和native栈帧都是一样的，但是具体实现上因为虚拟化之后更加灵活。以HotSpot为例，在纯解释执行的情况下，由于java字节码是基于栈的，可以省去当前寄存器内容保存的过程，保留了当前栈帧的传参列表、局部变量表和操作栈，这些内容使用的空间在编译时就已经确定了，因此在构造新栈帧的时候相对更加简单。</p>
 
       
     </div>
@@ -362,7 +363,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/C/" rel="tag"># C++</a>
+            <a href="/tags/Fundamentals/" rel="tag"># Fundamentals</a>
           
         </div>
       
@@ -375,8 +376,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/03/21/From-java-to-c-5/" rel="next" title="【C++】从java到入门C++（五）- 模板与泛型">
-                <i class="fa fa-chevron-left"></i> 【C++】从java到入门C++（五）- 模板与泛型
+              <a href="/2021/03/14/Algorithm-dp/" rel="next" title="【算法】动态规划">
+                <i class="fa fa-chevron-left"></i> 【算法】动态规划
               </a>
             
           </div>
@@ -385,8 +386,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/03/27/How-to-start-Openjdk/" rel="prev" title="【JVM】OpenJDK源码下载与编译">
-                【JVM】OpenJDK源码下载与编译 <i class="fa fa-chevron-right"></i>
+              <a href="/2021/03/21/From-java-to-c-1/" rel="prev" title="【C++】从java到入门c++（一）">
+                【C++】从java到入门c++（一） <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -517,7 +518,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2"><span class="nav-number">2.</span> <span class="nav-text">内存泄露</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%87%8E%E6%8C%87%E9%92%88"><span class="nav-number">3.</span> <span class="nav-text">野指针</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%90%8E%E8%AF%9D"><span class="nav-number">4.</span> <span class="nav-text">后话</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E4%B8%8E%E6%A0%88"><span class="nav-number">2.</span> <span class="nav-text">函数调用与栈</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A0%88%E5%B8%A7"><span class="nav-number">3.</span> <span class="nav-text">栈帧</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JVM%E6%A0%88%E5%B8%A7"><span class="nav-number">4.</span> <span class="nav-text">JVM栈帧</span></a></li></ol></div>
             
 
           </div>
