@@ -68,7 +68,7 @@
 
 
 
-  <meta name="keywords" content="JVM," />
+  <meta name="keywords" content="C++," />
 
 
 
@@ -79,17 +79,17 @@
 
 
 
-<meta name="description" content="前言相信刚开始接触C++开发的同学曾都对内存管理和析构函数望而生畏，而JVM将内存管理这一重要任务从开发者手中接管过来，极大降低了开发者的难度和提高了程序稳定性，本篇先简单介绍下GC相关的基础概念和算法。">
+<meta name="description" content="前言c是面向过程的编程语言，过程的实现主要依赖于函数；c++ java则是面向对象的编程语言，每个类中也封装有对象对外提供的方法（函数）用于提供相应特性或功能，本质上两者的实现离不开栈帧，本文进行简单的介绍。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="【JVM】GC基础知识">
-<meta property="og:url" content="http://example.com/2021/03/27/GC-fundamentals/index.html">
+<meta property="og:title" content="【C++】从java到入门C++（七）- 栈帧">
+<meta property="og:url" content="http://example.com/2021/03/26/From-java-to-c-7/index.html">
 <meta property="og:site_name" content="Woods的个人博客">
-<meta property="og:description" content="前言相信刚开始接触C++开发的同学曾都对内存管理和析构函数望而生畏，而JVM将内存管理这一重要任务从开发者手中接管过来，极大降低了开发者的难度和提高了程序稳定性，本篇先简单介绍下GC相关的基础概念和算法。">
+<meta property="og:description" content="前言c是面向过程的编程语言，过程的实现主要依赖于函数；c++ java则是面向对象的编程语言，每个类中也封装有对象对外提供的方法（函数）用于提供相应特性或功能，本质上两者的实现离不开栈帧，本文进行简单的介绍。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2021-03-27T14:46:48.000Z">
-<meta property="article:modified_time" content="2021-03-31T13:32:44.535Z">
+<meta property="article:published_time" content="2021-03-26T12:59:02.000Z">
+<meta property="article:modified_time" content="2021-04-05T02:03:40.914Z">
 <meta property="article:author" content="Woods Arrow">
-<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="C++">
 <meta name="twitter:card" content="summary">
 
 
@@ -120,13 +120,13 @@
 
 
 
-  <link rel="canonical" href="http://example.com/2021/03/27/GC-fundamentals/"/>
+  <link rel="canonical" href="http://example.com/2021/03/26/From-java-to-c-7/"/>
 
 
 
 
 
-  <title>【JVM】GC基础知识 | Woods的个人博客</title>
+  <title>【C++】从java到入门C++（七）- 栈帧 | Woods的个人博客</title>
   
 
 
@@ -253,7 +253,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/03/27/GC-fundamentals/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/03/26/From-java-to-c-7/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="">
@@ -270,7 +270,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">【JVM】GC基础知识</h1>
+          <h1 class="post-title" itemprop="name headline">【C++】从java到入门C++（七）- 栈帧</h1>
         
 
         <div class="post-meta">
@@ -282,8 +282,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-03-27T22:46:48+08:00">
-                2021-03-27
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-03-26T20:59:02+08:00">
+                2021-03-26
               </time>
             
 
@@ -301,8 +301,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2021/03/27/GC-fundamentals/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2021/03/27/GC-fundamentals/" itemprop="commentCount"></span>
+                <a href="/2021/03/26/From-java-to-c-7/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2021/03/26/From-java-to-c-7/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -330,36 +330,22 @@
       
 
       
-        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>相信刚开始接触C++开发的同学曾都对内存管理和析构函数望而生畏，而JVM将内存管理这一重要任务从开发者手中接管过来，极大降低了开发者的难度和提高了程序稳定性，本篇先简单介绍下GC相关的基础概念和算法。</p>
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>c是面向过程的编程语言，过程的实现主要依赖于函数；c++ java则是面向对象的编程语言，每个类中也封装有对象对外提供的方法（函数）用于提供相应特性或功能，本质上两者的实现离不开栈帧，本文进行简单的介绍。</p>
 <a id="more"></a>
 
-<h1 id="GC基础"><a href="#GC基础" class="headerlink" title="GC基础"></a>GC基础</h1><p>GC的全称是Garbage Collection, 即垃圾回收，是指将不再使用的内存区域进行回收的过程。JVM管理的内存主要包括常量池（广义）、栈、堆，需要进行垃圾回收和管理的区域主要是堆。</p>
-<p>GC的核心关注点在于：哪些是垃圾（which），如何回收垃圾（how），什么时候回收垃圾（when）。下面就从这三点出发，理一理GC的相关基础知识。</p>
-<h1 id="哪些是垃圾"><a href="#哪些是垃圾" class="headerlink" title="哪些是垃圾"></a>哪些是垃圾</h1><p>虚拟机在进行垃圾回收前首先要判断哪些是正在使用的活对象，哪些是需要进行回收的垃圾，而进行判断的算法主要有可达性分析和引用计数（Reference Count）两类：</p>
+<h1 id="函数调用与栈"><a href="#函数调用与栈" class="headerlink" title="函数调用与栈"></a>函数调用与栈</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">int b(int val)</span><br><span class="line">&#123;</span><br><span class="line">    return ++val;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int a()</span><br><span class="line">&#123;</span><br><span class="line">    return b(1);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">int main()</span><br><span class="line">&#123;</span><br><span class="line">    return a();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>首先看上面这个简单的case，在main函数中调用函数a，而a中有继续调用了b，简单表示为main-&gt;a-&gt;b，最终的执行顺序是b执行完将结果返回给调用点函数a，然后a再将值返回给调用点main，总的传递流程为b-&gt;a-&gt;main，与调用先后顺序刚好相反，即后调用的函数先结束。</p>
+<p>这种逻辑关系很容易联想到先进后出（FILO）的数据结构–栈，因此函数调用就是基于栈的栈帧实现的。</p>
+<h1 id="栈帧"><a href="#栈帧" class="headerlink" title="栈帧"></a>栈帧</h1><p>我们将调用过程抽离出来看，一般调用方称为caller，被调用的函数称为callee，那么这个过程需要做的包括：</p>
 <ol>
-<li><p>可达性分析<br>可达性分析是以某些确定的、正在使用的对象作为根节点GC Root，从这些节点出发去跟踪和他们具有引用关系的对象，完成整个跟踪和扫描后，可以到达的节点被认为是需要保留的对象，其他不可达的对象都认为是需要回收的垃圾。</p>
-</li>
-<li><p>引用计数<br>C++的智能指针也使用了引用计数的思想，具体是指在每个对象的ObjectHead里面添加一个field用于记录该对象被引用的次数，当该对象的引用次数变为0时，那么它就可以被作为垃圾进行回收，但缺点在于该方法会存在难以解决的环形引用的场景，导致垃圾对象的引用次数无法及时清零。</p>
-</li>
+<li>保存caller当前的状态用于从callee结束后恢复继续执行，包括当前寄存器的值、当前地址pc、当前栈帧的起始位置和栈顶指针sp；</li>
+<li>从caller传递参数给callee；</li>
+<li>callee运行需要的临时变量存放空间和调用完成后的返回值；</li>
 </ol>
-<h1 id="如何回收垃圾"><a href="#如何回收垃圾" class="headerlink" title="如何回收垃圾"></a>如何回收垃圾</h1><p>在找出哪些是垃圾、哪些是需要使用的对象之后，就需要进行具体的回收了，目前常用的几种垃圾回收算法主要包括标记-清除(Mark-Sweep)算法、标记-复制(Mark-Copy)算法、标记-压缩(Mark-Compact)算法，以及组合之后分代GC算法，下面进行具体介绍。</p>
-<ol>
-<li><p>标记-清除算法<br>在完成第一步的标记后，我们已经识别了哪些是垃圾，哪些是需要保留的live对象，很自然而然地就可以想到，可以通过直接对垃圾进行清除来回收内存。<br>优点：直接、高效<br>缺点：容易产生内存碎片，可能会在内存利用率较低的情况下产生OOM(Out Of Memery)</p>
-</li>
-<li><p>标记-复制算法<br>标记复制算法是指将当前内存分为等size的两块，其中一块叫from区，另一块叫to区。初始阶段先在from区进行内存分配，当无法继续在from区分配时触发GC，将from区所有live的对象依次拷贝到to区，并将from区置为free，完成后，当前的拥有全部live对象的to区标记为from区，已经清空的区域标记为to区。<br>优点：不易产生内存碎片<br>缺点：总有一半的内存处于闲置状态，内存利用率不高</p>
-</li>
-<li><p>标记-压缩算法<br>标记-压缩算法是指将live的对象向内存某一端进行拷贝，形象地形容为压缩。<br>优点：同时解决了标记-清除算法的内存碎片和标记-复制算法的内存利用率低的问题<br>缺点：回收效率较低</p>
-</li>
-<li><p>分代GC算法<br>基于大部分对象在分配后生命周期较短的特点，结合前面三种算法的优缺点，将垃圾回收进行分代管理，基本原则是：新分配的对象放到年轻代，年轻代主要使用标记-复制算法；当年轻代的对象在经历了若干次复制之后依然live，我们将其放到老年代，老年代主要使用标记-压缩算法。<br>其中为了进一步避免年轻代标记-复制算法对空余内存的占用高，一般会将年轻代分为三块：Eden区、from区、to区，其中Eden区较大，from区和to区较小。新对象在Eden区进行分配，当Eden区需要触发GC的时候，将其中的live对象和from区的对象均拷贝到to区，完成后Eden区和from区free，to区变成新的from区，新对象也可以继续在Eden区进行分配。</p>
-</li>
-</ol>
-<h1 id="什么时候回收垃圾"><a href="#什么时候回收垃圾" class="headerlink" title="什么时候回收垃圾"></a>什么时候回收垃圾</h1><p>结合垃圾回收方式的不同，可能会有以下几种场景：</p>
-<ol>
-<li>一般场景下，当虚拟机需要分配一块内存但是没有找到一块连续可用区域的时候，会触发垃圾回收；</li>
-<li>基础库提供了System.gc()的方法，可以由开发者主动触发GC;</li>
-<li>分代算法下，会根据具体策略确定触发新生代的Minor GC还是新生代+老年代的Majar GC；</li>
-<li>定制化GC：比如Android的会在应用前台切后台之后，主动触发耗时长、效果好的Mark-Compact；</li>
-</ol>
+<p>首先来看第一个问题，一般会有两种约定分别为caller-save和callee-save，分别表示由caller保存现场后再开始下一个栈帧，和完全托管给callee只要保证从callee返回时能够恢复现场就可以。考虑到callee并不一定会完全覆盖caller使用的所有寄存器，因此callee-save的方式根据实际使用的寄存器确定caller的现场处理和恢复更加灵活。此外，由于下一个栈帧是从当前栈顶sp开始的，pop下一个栈帧后只sp指向的位置就自动恢复，因此保存时也只需要记录caller栈帧的起始地址。</p>
+<p>其次是参数传递，上面的例子中在调用函数b的时候传递了一个int参数，实际在调用过程中，会约定使用若干寄存器用于传递参数，如果传递参数数量超出这个范围，则多出来的参数会放到栈帧中使用内存的方式进行传递。因此一些编码规范要求函数的参数不能超过五个是有对应的底层栈帧构造传参的性能原因。</p>
+<p>最后是callee的栈帧构造和返回值，callee中使用的内存大小是在编译时确定的，因此在开发时如果对使用的空间大小不确定或者较大，则最好使用堆内存进行处理，避免栈空间的浪费和溢出。处理完成的返回值一般约定保存至某个固定寄存器。</p>
+<h1 id="JVM栈帧"><a href="#JVM栈帧" class="headerlink" title="JVM栈帧"></a>JVM栈帧</h1><p>虚拟机栈帧在思想上和native栈帧都是一样的，但是具体实现上因为虚拟化之后更加灵活。以HotSpot为例，在纯解释执行的情况下，由于java字节码是基于栈的，可以省去当前寄存器内容保存的过程，保留了当前栈帧的传参列表、局部变量表和操作栈，这些内容使用的空间在编译时就已经确定了，因此在构造新栈帧的时候相对更加简单。</p>
 
       
     </div>
@@ -377,7 +363,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/JVM/" rel="tag"># JVM</a>
+            <a href="/tags/C/" rel="tag"># C++</a>
           
         </div>
       
@@ -390,8 +376,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2021/03/27/JVM-java-byte-code/" rel="next" title="【JVM】java字节码">
-                <i class="fa fa-chevron-left"></i> 【JVM】java字节码
+              <a href="/2021/03/26/From-java-to-c-6/" rel="next" title="【C++】从java到入门C++（六）- 内存泄露和野指针">
+                <i class="fa fa-chevron-left"></i> 【C++】从java到入门C++（六）- 内存泄露和野指针
               </a>
             
           </div>
@@ -400,8 +386,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/03/28/Summary-of-jvm/" rel="prev" title="【JVM】Java虚拟机概述">
-                【JVM】Java虚拟机概述 <i class="fa fa-chevron-right"></i>
+              <a href="/2021/03/26/From-java-to-c-8/" rel="prev" title="【C++】从java到入门C++（八）- 异常">
+                【C++】从java到入门C++（八）- 异常 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -532,7 +518,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#GC%E5%9F%BA%E7%A1%80"><span class="nav-number">2.</span> <span class="nav-text">GC基础</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%93%AA%E4%BA%9B%E6%98%AF%E5%9E%83%E5%9C%BE"><span class="nav-number">3.</span> <span class="nav-text">哪些是垃圾</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E5%9B%9E%E6%94%B6%E5%9E%83%E5%9C%BE"><span class="nav-number">4.</span> <span class="nav-text">如何回收垃圾</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E5%9B%9E%E6%94%B6%E5%9E%83%E5%9C%BE"><span class="nav-number">5.</span> <span class="nav-text">什么时候回收垃圾</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E4%B8%8E%E6%A0%88"><span class="nav-number">2.</span> <span class="nav-text">函数调用与栈</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%A0%88%E5%B8%A7"><span class="nav-number">3.</span> <span class="nav-text">栈帧</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#JVM%E6%A0%88%E5%B8%A7"><span class="nav-number">4.</span> <span class="nav-text">JVM栈帧</span></a></li></ol></div>
             
 
           </div>
